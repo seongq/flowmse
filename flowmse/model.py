@@ -14,7 +14,7 @@ from flowmse.util.other import pad_spec
 import numpy as np
 import matplotlib.pyplot as plt
 from flowmse.odes import OTFLOW
-
+import random
 
 
 class VFModel(pl.LightningModule):
@@ -28,11 +28,13 @@ class VFModel(pl.LightningModule):
         parser.add_argument("--num_eval_files", type=int, default=10, help="Number of files for speech enhancement performance evaluation during training. Pass 0 to turn off (no checkpoints based on evaluation metrics will be generated).")
         parser.add_argument("--loss_type", type=str, default="mse", help="The type of loss function to use.")
         parser.add_argument("--loss_abs_exponent", type=float, default= 0.5,  help="magnitude transformation in the loss term")
+        parser.add_argument("--enhancement", action="store_true")
+        parser.add_argument("--N_enh", type=int, default=10)
         return parser
 
     def __init__(
         self, backbone, ode, lr=1e-4, ema_decay=0.999, t_eps=0.03, T_rev = 1.0,  loss_abs_exponent=0.5, 
-        num_eval_files=10, loss_type='mse', data_module_cls=None, **kwargs
+        num_eval_files=10, loss_type='mse', data_module_cls=None, N_enh=10, enhancement=False, **kwargs
     ):
         """
         Create a new ScoreModel.
@@ -52,8 +54,8 @@ class VFModel(pl.LightningModule):
         
         
         ode_cls = ODERegistry.get_by_name(ode)
-        
-       
+        self.enhancement = enhancement
+        self.N_enh = N_enh
         self.ode = ode_cls(**kwargs)
         # Store hyperparams and save them
         self.lr = lr
@@ -107,6 +109,15 @@ class VFModel(pl.LightningModule):
     def eval(self, no_ema=False):
         return self.train(False, no_ema=no_ema)
 
+    def _mse_loss(self, x, x_hat):    
+        err = x-x_hat
+        losses = torch.square(err.abs())
+
+        # taken from reduce_op function: sum over channels and position and mean over batch dim
+        # presumably only important for absolute loss number, not for gradients
+        loss = torch.mean(0.5*torch.sum(losses.reshape(losses.shape[0], -1), dim=-1))
+        return loss
+    
     
     def _loss(self, vectorfield, condVF):    
         if self.loss_type == 'mse':
@@ -133,9 +144,42 @@ class VFModel(pl.LightningModule):
         vectorfield = self(xt, t, y)
         loss = self._loss(vectorfield, condVF)
         return loss
+    
+    def _step_enh(self, batch, batch_idx, N_enh):
+        x0, y = batch
+        rdm = torch.rand(x0.shape[0], device=x0.device) * (self.T_rev - self.t_eps) + self.t_eps
+        t = torch.min(rdm, torch.tensor(self.T_rev))
+        mean, std = self.ode.marginal_prob(x0, t, y)
+        z = torch.randn_like(x0)  #
+        sigmas = std[:, None, None, None]
+        xt = mean + sigmas * z
+        der_std = self.ode.der_std(t)
+        der_mean = self.ode.der_mean(x0,t,y)
+        condVF = der_std * z + der_mean
+        vectorfield = self(xt, t, y)
+        loss1 = self._loss(vectorfield, condVF)
+        N_used = random.randint(2,N_enh)
+        dt = - (self.T_rev-self.t_eps)/N_used
+        xT,_ = self.ode.prior_sampling(y.shape, y)
+        T = self.T_rev
+        for i in range(N_used):
+            if i != N_used -1:
+                with torch.no_grad():
+                    xT = xT + dt * self(xT,T*torch.ones(y.size(0), device=y.device),y)
+                    T = T + dt
+            else:
+                xT = xT + dt * self(xT,T*torch.ones(y.size(0), device=y.device),y)
+                T = T + dt
+        loss2 = self._mse_loss(xT,x0)
+        loss = loss1 + loss2
+        return loss
 
     def training_step(self, batch, batch_idx):
-        loss = self._step(batch, batch_idx)
+        if self.enhancement:
+            loss = self._step_enh(batch, batch_idx, self.N_enh)
+            
+        else:
+            loss = self._step(batch, batch_idx)
         self.log('train_loss', loss, on_step=True, on_epoch=True)
         return loss
 
