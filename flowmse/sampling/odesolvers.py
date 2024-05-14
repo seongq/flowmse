@@ -45,3 +45,29 @@ class EulerODEsolver(ODEsolver):
         x = x + vectorfield*dt
         
         return x
+
+
+@ODEsolverRegistry.register('midpoint')
+class MidpointODEsolver(ODEsolver):
+    def __init__(self, ode, VF_fn):
+        super().__init__(ode, VF_fn)
+
+    def update_fn(self, x, t,y, stepsize, *args):
+        dt = -stepsize
+       
+        x = x + dt*self.VF_fn(t+dt/2, x+dt/2*self.VF_fn(x,t,y))
+        
+        return x
+    
+@ODEsolverRegistry.register('heun')
+class HeunODEsolver(ODEsolver):
+    def __init__(self, ode, VF_fn):
+        super().__init__(ode, VF_fn)
+
+    def update_fn(self, x, t,y, stepsize, *args):
+        dt = -stepsize
+        x_next = x + dt * self.VF_fn(x,t,y)
+        x = x + dt/2 *(self.VF_fn(x,t,y)+self.VF_fn(x_next,t+dt, y))
+        
+        return x
+    
