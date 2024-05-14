@@ -64,12 +64,14 @@ if __name__ == '__main__':
                **vars(arg_groups['DataModule'])
           }
      )
-     
      # Set up logger configuration
      if args.no_wandb:
           logger = TensorBoardLogger(save_dir="logs", name="tensorboard")
      else:
-          logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_sigma-min_{args.sigma_min}_t_eps_{args.t_eps}")
+          if ode_class.__name__ == "OTFLOW":
+               logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_sigma-min_{args.sigma_min}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "OTFLOW_DET":
+               logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_det_t_eps_{args.t_eps}")
           logger.experiment.log_code(".")
 
      # Set up callbacks for logger
@@ -95,41 +97,4 @@ if __name__ == '__main__':
      # Train model
      trainer.fit(model)
 
-     # if not args.nolog:
-     #      #this needs to be changed accordingly to your wandb settings
-     #      logger = WandbLogger(project="newloss", entity = 'name_to_be_replaced', log_model=True, save_dir="logs")
-     #      logger.experiment.log_code(".")
-     #      savedir_ck = f'/data2/ncsnpp/logs/{logger.version}' #change your folder, where to save files
-     #      if not os.path.isdir(savedir_ck):
-     #           os.makedirs(os.path.join(savedir_ck))
-     # else:
-     #      logger = None``
-
-     # # Set up callbacks for logger
-     # if args.num_eval_files and logger != None:
-     #      callbacks = [ModelCheckpoint(dirpath=savedir_ck, save_last=True, filename='{epoch}-last')]
-     #      checkpoint_callback_last = ModelCheckpoint(dirpath=savedir_ck,
-     #           save_last=True, filename='{epoch}-last')
-     #      checkpoint_callback_pesq = ModelCheckpoint(dirpath=savedir_ck,
-     #           save_top_k=2, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
-     #      checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=savedir_ck,
-     #           save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
-     #      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq,
-     #           checkpoint_callback_si_sdr]
-
-     # # Initialize the Trainer and the DataModule
-     # if logger != None:
-     #      trainer = pl.Trainer.from_argparse_args(
-     #           arg_groups['pl.Trainer'],
-     #           strategy=DDPPlugin(find_unused_parameters=False), logger=logger,
-     #           log_every_n_steps=10, num_sanity_val_steps=0,
-     #           callbacks=callbacks
-     #      )
-     # else:
-     #      trainer = pl.Trainer.from_argparse_args(
-     #      arg_groups['pl.Trainer'],
-     #      strategy=DDPPlugin(find_unused_parameters=False),
-     #      log_every_n_steps=10, num_sanity_val_steps=0
-     # )
-
-
+   
