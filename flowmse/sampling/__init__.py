@@ -73,7 +73,57 @@ def get_white_box_solver(
     
     return ode_solver
 
+def get_black_box_solver(
+    ode, VF_fn, y,  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='BDF', device='cuda', **kwargs):
+    """Probability flow ODE sampler with the black-box ODE solver.
 
+    Args:
+        sde: An `sdes.SDE` object representing the forward SDE.
+        score_fn: A function (typically learned model) that predicts the score.
+        y: A `torch.Tensor`, representing the (non-white-)noisy starting point(s) to condition the prior on.
+        inverse_scaler: The inverse data normalizer.
+        denoise: If `True`, add one-step denoising to final samples.
+        rtol: A `float` number. The relative tolerance level of the ODE solver.
+        atol: A `float` number. The absolute tolerance level of the ODE solver.
+        method: A `str`. The algorithm used for the black-box ODE solver.
+            See the documentation of `scipy.integrate.solve_ivp`.
+        eps: A `float` number. The reverse-time SDE/ODE will be integrated to `eps` for numerical stability.
+        device: PyTorch device.
+
+    Returns:
+        A sampling function that returns samples and the number of function evaluations during sampling.
+    """
+     
+    def ode_solver(**kwargs):
+        """The probability flow ODE sampler with black-box ODE solver.
+
+        Args:
+            model: A score model.
+            z: If present, generate samples from latent code `z`.
+        Returns:
+            samples, number of function evaluations.
+        """
+        with torch.no_grad():
+            # If not represent, sample the latent code from the prior distibution of the SDE.
+            x = ode.prior_sampling(y.shape, y)[0].to(device)
+
+            def ode_func(t, x):
+                x = from_flattened_numpy(x, y.shape).to(device).type(torch.complex64)
+                vec_t = torch.ones(y.shape[0], device=x.device) * t
+                drift = VF_fn(x, vec_t, y)
+                return to_flattened_numpy(drift)
+
+            # Black-box ODE solver for the probability flow ODE
+            solution = integrate.solve_ivp(
+                ode_func, (T_rev, t_eps), to_flattened_numpy(x),
+                rtol=rtol, atol=atol, method=method, **kwargs
+            )
+            nfe = solution.nfev
+            x = torch.tensor(solution.y[:, -1]).reshape(y.shape).to(device).type(torch.complex64)
+
+            return x, nfe
+
+    return ode_solver
 
 # def timesteps_space(sdeT, sdeN,  eps, device, type='linear'):
 #     timesteps = torch.linspace(sdeT, eps, sdeN, device=device)

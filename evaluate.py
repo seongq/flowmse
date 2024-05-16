@@ -17,7 +17,7 @@ from flowmse.model import VFModel
 import pdb
 import os
 from flowmse.util.other import pad_spec
-from flowmse.sampling import get_white_box_solver
+from flowmse.sampling import get_white_box_solver, get_black_box_solver
 
 # GPU 2번과 3번만 사용하도록 설정
 os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
@@ -35,10 +35,10 @@ if __name__ == '__main__':
     parser.add_argument("--odesolver_type", type=str, choices=("white", "black"), default="white",
                         help="Specify the sampler type")
     parser.add_argument("--odesolver", type=str,
-                        default="euler", required=True, help="Predictor class for the PC sampler.")
+                        default="euler", help="Predictor class for the PC sampler.")
     parser.add_argument("--reverse_starting_point", type=float, default=1.0, help="Starting point for the reverse SDE.")
     parser.add_argument("--reverse_end_point", type=float, default=0.03)
-    parser.add_argument("--N", type=int, default=30, required=True, help="Number of reverse steps")
+    parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
     parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
     parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
     
@@ -111,6 +111,8 @@ if __name__ == '__main__':
         
         if odesolver_type == "white":
             sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
+        elif odesolver_type == "black":
+            sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='RK45', device='cuda')
         
         else:
             print("{} is not a valid sampler type!".format(odesolver_type))
