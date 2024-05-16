@@ -35,10 +35,10 @@ if __name__ == '__main__':
     parser.add_argument("--odesolver_type", type=str, choices=("white", "black"), default="white",
                         help="Specify the sampler type")
     parser.add_argument("--odesolver", type=str,
-                        default="euler", help="Predictor class for the PC sampler.")
+                        default="euler", required=True, help="Predictor class for the PC sampler.")
     parser.add_argument("--reverse_starting_point", type=float, default=1.0, help="Starting point for the reverse SDE.")
     parser.add_argument("--reverse_end_point", type=float, default=0.03)
-    parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
+    parser.add_argument("--N", type=int, default=30, required=True, help="Number of reverse steps")
     parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
     parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
     

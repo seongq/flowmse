@@ -55,7 +55,7 @@ class MidpointODEsolver(ODEsolver):
     def update_fn(self, x, t,y, stepsize, *args):
         dt = -stepsize
        
-        x = x + dt*self.VF_fn(t+dt/2, x+dt/2*self.VF_fn(x,t,y))
+        x = x + dt*self.VF_fn(x+dt/2*self.VF_fn(x,t,y), t+dt/2, y)
         
         return x
     
