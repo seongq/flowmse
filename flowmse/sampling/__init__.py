@@ -74,7 +74,7 @@ def get_white_box_solver(
     return ode_solver
 
 def get_black_box_solver(
-    ode, VF_fn, y,  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='BDF', device='cuda', **kwargs):
+    ode, VF_fn, y,  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='dop853', device='cuda', **kwargs):
     """Probability flow ODE sampler with the black-box ODE solver.
 
     Args:

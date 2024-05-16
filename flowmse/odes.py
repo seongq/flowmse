@@ -54,6 +54,8 @@ class ODE(abc.ABC):
 
 @ODERegistry.register("otflow")
 class OTFLOW(ODE):
+    # Flow Matching for Generative Modelling, ICLR, Lipman et al.
+    # mean_t = (1-t)x0 + tx1, sigma_t = t+sigma_min*(1-t)
     @staticmethod
     def add_argparse_args(parser):        
         parser.add_argument("--sigma-min", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
@@ -96,7 +98,52 @@ class OTFLOW(ODE):
         sigma_min = self.sigma_min
         return 1-sigma_min
     
-    
+
+
+@ODERegistry.register("condflow")
+class CONDFLOW(ODE):
+    """ mu_t = (1-t)x0 + ty, sigma_t = sigma_min"""
+    @staticmethod
+    def add_argparse_args(parser):        
+        
+        return parser
+
+    def __init__(self, sigma_min=1e-4, **ignored_kwargs):
+        
+        super().__init__()        
+        self.sigma_min = sigma_min
+        
+    def copy(self):
+        return CONDFLOW( )
+
+    def ode(self,x,t,*args):
+        pass    
+    def _mean(self, x0, t, y):       
+        return (1-t)[:,None,None,None]*x0 + t[:,None,None,None]*y
+
+    def _std(self, t):
+
+        return self.sigma_min*torch.ones_like(t)
+
+    def marginal_prob(self, x0, t, y):
+        return self._mean(x0, t, y), self._std(t)
+
+    def prior_sampling(self, shape, y):
+        if shape != y.shape:
+            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
+        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
+        z = torch.randn_like(y)
+        
+        x_T = y + z * std[:, None, None, None]
+        return x_T, z
+
+    def der_mean(self,x0,t,y):
+        return y-x0
+        
+    def der_std(self,t):
+        
+        return 0
+
     
 @ODERegistry.register("otflow_det")
 class OTFLOW_DET(ODE):

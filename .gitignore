@@ -1,4 +1,5 @@
 logs/*
 lightning_logs/*
 __pycache__
-flowmse/__pycache__
+flowmse/__pycache__/*
+flowmse/sampling/__pycache__/*
