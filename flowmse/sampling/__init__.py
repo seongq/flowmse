@@ -28,22 +28,7 @@ def get_white_box_solver(
     odesolver_name,  ode, VF_fn, Y, Y_prior=None,
     T_rev=1.0, t_eps=0.03, N=30, **kwargs
 ):
-    """Create a Predictor-Corrector (PC) sampler.
-
-    Args:
-        predictor_name: The name of a registered `sampling.Predictor`.
-        corrector_name: The name of a registered `sampling.Corrector`.
-        sde: An `sdes.SDE` object representing the forward SDE.
-        score_fn: A function (typically learned model) that predicts the score.
-        y: A `torch.Tensor`, representing the (non-white-)noisy starting point(s) to condition the prior on.
-        denoise: If `True`, add one-step denoising to the final samples.
-        eps: A `float` number. The reverse-time SDE and ODE are integrated to `epsilon` to avoid numerical issues.
-        snr: The SNR to use for the corrector. 0.1 by default, and ignored for `NoneCorrector`.
-        N: The number of reverse sampling steps. If `None`, uses the SDE's `N` property by default.
-
-    Returns:
-        A sampling function that returns samples and the number of function evaluations during sampling.
-    """
+   
     odesolver_cls = ODEsolverRegistry.get_by_name(odesolver_name)
     
     odesolver = odesolver_cls(ode, VF_fn)

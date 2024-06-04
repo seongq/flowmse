@@ -64,6 +64,7 @@ class VFModel(pl.LightningModule):
         self._error_loading_ema = False
         self.t_eps = t_eps
         self.T_rev = T_rev
+        self.ode.T = T_rev
         self.loss_type = loss_type
         self.num_eval_files = num_eval_files
         self.loss_abs_exponent = loss_abs_exponent
@@ -124,6 +125,7 @@ class VFModel(pl.LightningModule):
             err = vectorfield-condVF
             losses = torch.square(err.abs())
         elif self.loss_type == 'mae':
+            err = vectorfield-condVF
             losses = err.abs()
         # taken from reduce_op function: sum over channels and position and mean over batch dim
         # presumably only important for absolute loss number, not for gradients

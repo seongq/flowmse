@@ -77,7 +77,16 @@ if __name__ == '__main__':
           elif ode_class.__name__ == "STOCHASTICINTERPOLANT":
                logger = WandbLogger(project="STOCHASTICINTERPOLANT", log_model=True, save_dir="logs", name=f"STOCHASTICINTERPOLANT_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "SCHRODINGERBRIDGE":
-               logger = WandbLogger(project="SCHRODINGERBRIDGE", log_model=True, save_dir="logs", name=f"STOCHASTICINTERPOLANT_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+               assert args.T_rev < 1
+               logger = WandbLogger(project="SCHRODINGERBRIDGE", log_model=True, save_dir="logs", name=f"SCHRODINGERBRIDGE_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "FLOWMATCHING":
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "FLOWMATCHING_LIN_VAR":
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "FLOWMATCHING_QUAD_VAR":
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          else:
+               raise ValueError(f"{ode_class.__name__}에 대한 configuration이 만들어지지 않았음")
           logger.experiment.log_code(".")
 
      # Set up callbacks for logger
@@ -86,9 +95,9 @@ if __name__ == '__main__':
           checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{logger.version}",
                save_last=True, filename='{epoch}-last')
           checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-               save_top_k=5, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+               save_top_k=10, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
           checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-               save_top_k=5, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+               save_top_k=10, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
           #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
           callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
