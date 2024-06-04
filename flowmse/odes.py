@@ -495,3 +495,153 @@ class FLOWMATCHING_QUAD_VAR(ODE):
     def der_std(self,t):
         
         return (self.sigma *(1-t) / torch.sqrt(t*(2-t)))[:,None,None,None]
+    
+    
+
+@ODERegistry.register("bbed")
+class BBED(ODE):
+    @staticmethod
+    def add_argparse_args(parser):
+        parser.add_argument("--k", type=float, default = 2.6, help="base factor for diffusion term") 
+        parser.add_argument("--theta", type=float, default = 0.52, help="root scale factor for diffusion term.")
+        return parser
+
+    def __init__(self, T_sampling, k, theta, N=1000, **kwargs):
+        """Construct an Brownian Bridge with Exploding Diffusion Coefficient SDE with parameterization as in the paper.
+        dx = (y-x)/(Tc-t) dt + sqrt(theta)*k^t dw
+        """
+        super().__init__(N)
+        self.k = k
+        self.logk = np.log(self.k)
+        self.theta = theta
+        self.N = N
+        self.Eilog = sc.expi(-2*self.logk)
+
+
+    def copy(self):
+        return BBED(self.T, self.k, self.theta)
+
+    def ode(self, x, t, *args):
+        pass
+
+
+    def _mean(self, x0, t, y):
+        time = (t/self.Tc)[:, None, None, None]
+        mean = x0*(1-time) + y*time
+        return mean
+
+    def _std(self, t):
+        t_np = t.cpu().detach().numpy()
+        Eis = sc.expi(2*(t_np-1)*self.logk) - self.Eilog
+        h = 2*self.k**2*self.logk
+        var = (self.k**(2*t_np)-1+t_np) + h*(1-t_np)*Eis
+        var = torch.tensor(var).to(device=t.device)*(1-t)*self.theta
+        return torch.sqrt(var)
+
+    def marginal_prob(self, x0, t, y):
+        return self._mean(x0, t, y), self._std(t)
+
+    def prior_sampling(self, shape, y):
+        if shape != y.shape:
+            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
+        std = self._std(self.T*torch.ones((y.shape[0],), device=y.device))
+        z = torch.randn_like(y)
+        x_T = y + z * std[:, None, None, None]
+        return x_T, z
+    
+    def der_mean(self,x0,t,y):
+        return y-x0
+        
+    def der_std(self,t):
+        t_np = t.cpu().detach().numpy()
+        Eis = sc.expi(2*(t_np-1)*self.logk) - self.Eilog
+        h = 2*self.k**2*self.logk
+        var = (self.k**(2*t_np)-1+t_np) + h*(1-t_np)*Eis
+        var = torch.tensor(var).to(device=t.device)*(1-t)*self.theta
+        
+        return (1/2)* 1/torch.sqrt(var) *( -self.theta * (self.k**(2*t)-1+t) +(1-t)*self.theta*(2*torch.log(self.k)* self.k**(2*t)+1)-2*h*(1-t)*self.theta*Eis + h * torch.exp(2*(t-1)*self.k)*2*self.k/(2*(t-1)*self.k))
+
+
+
+@ODERegistry.register("ouve")
+class OUVESDE(ODE):
+    @staticmethod
+    def add_argparse_args(parser):
+        parser.add_argument("--theta", type=float, default=1.5, help="The constant stiffness of the Ornstein-Uhlenbeck process. 1.5 by default.")
+        parser.add_argument("--sigma-min", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
+        parser.add_argument("--sigma-max", type=float, default=0.5, help="The maximum sigma to use. 0.5 by default.")
+        return parser
+
+    def __init__(self, theta, sigma_min, sigma_max, N=1000, **ignored_kwargs):
+        """Construct an Ornstein-Uhlenbeck Variance Exploding SDE.
+
+        Note that the "steady-state mean" `y` is not provided at construction, but must rather be given as an argument
+        to the methods which require it (e.g., `sde` or `marginal_prob`).
+
+        dx = -theta (y-x) dt + sigma(t) dw
+
+        with
+
+        sigma(t) = sigma_min (sigma_max/sigma_min)^t * sqrt(2 log(sigma_max/sigma_min))
+
+        Args:
+            theta: stiffness parameter.
+            sigma_min: smallest sigma.
+            sigma_max: largest sigma.
+            N: number of discretization steps
+        """
+        super().__init__(N)
+        self.theta = theta
+        self.sigma_min = sigma_min
+        self.sigma_max = sigma_max
+        self.logsig = np.log(self.sigma_max / self.sigma_min)
+
+    def copy(self):
+        return OUVESDE(self.theta, self.sigma_min, self.sigma_max)
+
+    def ode(self, x, t, y):
+        pass
+
+    def _mean(self, x0, t, y):
+        theta = self.theta
+        exp_interp = torch.exp(-theta * t)[:, None, None, None]
+        return exp_interp * x0 + (1 - exp_interp) * y
+
+    def _std(self, t):
+        # This is a full solution to the ODE for P(t) in our derivations, after choosing g(s) as in self.sde()
+        sigma_min, theta, logsig = self.sigma_min, self.theta, self.logsig
+        # could maybe replace the two torch.exp(... * t) terms here by cached values **t
+        return torch.sqrt(
+            (
+                sigma_min**2
+                * torch.exp(-2 * theta * t)
+                * (torch.exp(2 * (theta + logsig) * t) - 1)
+                * logsig
+            )
+            /
+            (theta + logsig)
+        )
+
+    def marginal_prob(self, x0, t, y):
+        return self._mean(x0, t, y), self._std(t)
+
+    def prior_sampling(self, shape, y):
+        if shape != y.shape:
+            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
+        std = self._std(torch.ones((y.shape[0],), device=y.device))
+        z = torch.randn_like(y)
+        #z = torch.zeros_like(y)
+        x_T = y + z * std[:, None, None, None]
+        return x_T, z
+
+    def der_mean(self,x0,t,y):
+        theta = self.theta
+        return theta * torch.exp(-theta *t)[:,None,None,None]*(y-x0)        
+    def der_std(self,t):
+        std = self._std(t)
+        logsig = self.logsig
+        sigma_min = self.sigma_min
+        theta = self.theta
+                
+        return (1/std * (sigma_min**2)/(theta+logsig) *(logsig* torch.exp(2*logsig*t) + theta * torch.exp(-2 * theta *t)) * logsig) [:,None,None,None]
+    
