@@ -36,8 +36,8 @@ if __name__ == '__main__':
                         help="Specify the sampler type")
     parser.add_argument("--odesolver", type=str,
                         default="euler", help="Predictor class for the PC sampler.")
-    parser.add_argument("--reverse_starting_point", type=float, default=1.0, help="Starting point for the reverse SDE.")
-    parser.add_argument("--reverse_end_point", type=float, default=0.03)
+    parser.add_argument("--reverse_starting_point", type=None, default=1.0, help="Starting point for the reverse SDE.")
+    parser.add_argument("--reverse_end_point", type=None, default=0.03)
     parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
     parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
     parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
@@ -66,8 +66,8 @@ if __name__ == '__main__':
     odesolver_type = args.odesolver_type
     odesolver = args.odesolver
     N = args.N
-    reverse_starting_point = args.reverse_starting_point
-    reverse_end_point = args.reverse_end_point
+    
+    
     atol = args.atol
     rtol = args.rtol
 
@@ -79,6 +79,16 @@ if __name__ == '__main__':
         checkpoint_file, base_dir="",
         batch_size=16, num_workers=0, kwargs=dict(gpu=False)
     )
+    
+    if args.reverse_starting_point == None:
+        reverse_starting_point = model.T_rev
+    else:
+        reverse_starting_point = args.reverse_starting_point
+        
+    if args.reverse_end_point == None:
+        reverse_end_point = model.t_eps
+    else:
+        reverse_end_point = args.reverse_end_point
     model.eval(no_ema=False)
     model.cuda()
 

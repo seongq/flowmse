@@ -268,7 +268,7 @@ class STRAIGHTCFM(ODE):
 
     def _std(self, t):
 
-        return self.sigma_min
+        return self.sigma_min + torch.zeros_like(t)
 
     def marginal_prob(self, x0, t, y):
         return self._mean(x0, t, y), self._std(t)
@@ -316,7 +316,7 @@ class STOCHASTICINTERPOLANT(ODE):
 
     def _std(self, t):
 
-        return 0
+        return 0 + torch.zeros_like(t)
 
     def marginal_prob(self, x0, t, y):
         return self._mean(x0, t, y), self._std(t)

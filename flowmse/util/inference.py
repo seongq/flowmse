@@ -10,11 +10,13 @@ from ..sampling import get_white_box_solver
 sr = 16000
 snr = 0.5
 N = 30
-T_rev = 1.0
-t_eps = 0.03
+
+
+
 
 def evaluate_model(model, num_eval_files):
-
+    T_rev = model.T_rev
+    t_eps = model.t_eps
     clean_files = model.data_module.valid_set.clean_files
     noisy_files = model.data_module.valid_set.noisy_files
     
@@ -47,6 +49,7 @@ def evaluate_model(model, num_eval_files):
 
         # Reverse sampling
         sampler = get_white_box_solver("euler", model.ode, model, Y.cuda(), T_rev=T_rev, t_eps=t_eps, N=N)
+        
             
         sample, _ = sampler()
 
