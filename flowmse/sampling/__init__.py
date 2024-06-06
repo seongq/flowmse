@@ -49,6 +49,8 @@ def get_white_box_solver(
                     stepsize = t - timesteps[i+1]
                 else:
                     stepsize = timesteps[-1]
+                    if odesolver_name in ['midpoint', 'heun']:
+                        stepsize = timesteps[-1]-t_eps
                 vec_t = torch.ones(Y.shape[0], device=Y.device) * t
                 
                 xt = odesolver.update_fn(xt, vec_t, Y, stepsize)
