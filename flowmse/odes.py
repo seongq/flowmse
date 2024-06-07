@@ -584,7 +584,7 @@ class OUVESDE(ODE):
         parser.add_argument("--sigma-max", type=float, default=0.5, help="The maximum sigma to use. 0.5 by default.")
         return parser
 
-    def __init__(self, theta, sigma_min, sigma_max, N=1000, **ignored_kwargs):
+    def __init__(self, theta, sigma_min, sigma_max,  **ignored_kwargs):
         """Construct an Ornstein-Uhlenbeck Variance Exploding SDE.
 
         Note that the "steady-state mean" `y` is not provided at construction, but must rather be given as an argument

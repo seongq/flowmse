@@ -41,7 +41,7 @@ def get_white_box_solver(
                 Y_prior = Y
             
             xt,_ = ode.prior_sampling(Y_prior.shape, Y_prior)
-            timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) #timesteps_space(sde.T, sde.N,eps, Y.device, type=timestep_type)
+            timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) 
             xt = xt.to(Y_prior.device)
             for i in range(len(timesteps)):
                 t = timesteps[i]
