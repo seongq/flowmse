@@ -506,27 +506,26 @@ class BBED(ODE):
         parser.add_argument("--theta", type=float, default = 0.52, help="root scale factor for diffusion term.")
         return parser
 
-    def __init__(self, T_sampling, k, theta, N=1000, **kwargs):
+    def __init__(self,  k, theta,  **kwargs):
         """Construct an Brownian Bridge with Exploding Diffusion Coefficient SDE with parameterization as in the paper.
         dx = (y-x)/(Tc-t) dt + sqrt(theta)*k^t dw
         """
-        super().__init__(N)
+        super().__init__()
         self.k = k
         self.logk = np.log(self.k)
         self.theta = theta
-        self.N = N
         self.Eilog = sc.expi(-2*self.logk)
 
 
     def copy(self):
-        return BBED(self.T, self.k, self.theta)
+        return BBED(self.k, self.theta)
 
     def ode(self, x, t, *args):
         pass
 
 
     def _mean(self, x0, t, y):
-        time = (t/self.Tc)[:, None, None, None]
+        time = (t)[:, None, None, None]
         mean = x0*(1-time) + y*time
         return mean
 
@@ -553,13 +552,26 @@ class BBED(ODE):
         return y-x0
         
     def der_std(self,t):
+        
+        # t_np = t.cpu().detach().numpy()
+        # Eis = sc.expi(2*(t_np-1)*self.logk) - self.Eilog
+        # h = 2*self.k**2*self.logk
+        # var = (self.k**(2*t_np)-1+t_np) + h*(1-t_np)*Eis
+        # var = torch.tensor(var).to(device=t.device)*(1-t)*self.theta
         t_np = t.cpu().detach().numpy()
         Eis = sc.expi(2*(t_np-1)*self.logk) - self.Eilog
+        Eis = torch.tensor(Eis).to(t.device)
         h = 2*self.k**2*self.logk
-        var = (self.k**(2*t_np)-1+t_np) + h*(1-t_np)*Eis
-        var = torch.tensor(var).to(device=t.device)*(1-t)*self.theta
+        pre_var = (self.k**(2*t)-1+t) + h*(1-t)*Eis
+        var = pre_var*(1-t)*self.theta
+        std = torch.sqrt(var).to(t.device)
         
-        return (1/2)* 1/torch.sqrt(var) *( -self.theta * (self.k**(2*t)-1+t) +(1-t)*self.theta*(2*torch.log(self.k)* self.k**(2*t)+1)-2*h*(1-t)*self.theta*Eis + h * torch.exp(2*(t-1)*self.k)*2*self.k/(2*(t-1)*self.k))
+        dEis = self.k**(2*(t-1))/(t-1)
+        dpre_var = 2*self.logk*(self.k**(2*t))+1 -h*Eis + h*(1-t)*dEis
+        dvar = dpre_var*(1-t)*self.theta-pre_var*self.theta
+        dstd = 1/(2*std) * dvar
+        
+        return dstd[:,None,None,None]
 
 
 

@@ -85,6 +85,9 @@ if __name__ == '__main__':
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING_QUAD_VAR":
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "BBED":
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_k_{args.k}_theta_{args.theta}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")        
+          
           else:
                raise ValueError(f"{ode_class.__name__}에 대한 configuration이 만들어지지 않았음")
           logger.experiment.log_code(".")

@@ -66,8 +66,9 @@ class HeunODEsolver(ODEsolver):
 
     def update_fn(self, x, t,y, stepsize, *args):
         dt = -stepsize
-        x_next = x + dt * self.VF_fn(x,t,y)
-        x = x + dt/2 *(self.VF_fn(x,t,y)+self.VF_fn(x_next,t+dt, y))
+        current_vectorfield = self.VF_fn(x,t,y)
+        x_next = x + dt * current_vectorfield
+        x = x + dt/2 *(current_vectorfield+self.VF_fn(x_next,t+dt, y))
         
         return x
     
