@@ -41,6 +41,7 @@ if __name__ == '__main__':
     parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
     parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
     parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
+    parser.add_argument("--corrector_steps", default=1, type=int)
     
     
 
@@ -124,20 +125,24 @@ if __name__ == '__main__':
         Y = torch.unsqueeze(model._forward_transform(model._stft(y.cuda())), 0)
         Y = pad_spec(Y)
         
+       
+       
+        time_schedule = torch.linspace(reverse_starting_point, reverse_end_point, N)
+        z = torch.rand_like(Y)
+         
+        # if odesolver_type == "white":
+        #     sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
+        # elif odesolver_type == "black":
+        #     sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='RK45', device='cuda')
         
-        if odesolver_type == "white":
-            sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
-        elif odesolver_type == "black":
-            sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='RK45', device='cuda')
-        
-        else:
-            print("{} is not a valid sampler type!".format(odesolver_type))
-        sample, nfe = sampler()
+        # else:
+        #     print("{} is not a valid sampler type!".format(odesolver_type))
+        # sample, nfe = sampler()
         
         
         sample = sample.squeeze()
 
-        
+        y = y * norm_factor
         x_hat = model.to_audio(sample, T_orig)
         x_hat = x_hat * norm_factor
         x_hat = x_hat.squeeze().cpu().numpy()

@@ -139,6 +139,8 @@ if __name__ == '__main__':
 
         
         x_hat = model.to_audio(sample, T_orig)
+        
+        y = y * norm_factor
         x_hat = x_hat * norm_factor
         x_hat = x_hat.squeeze().cpu().numpy()
         end = time.time()
