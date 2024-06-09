@@ -19,6 +19,8 @@ import os
 from flowmse.util.other import pad_spec
 from flowmse.sampling import get_white_box_solver, get_black_box_solver
 
+from flowmse.drift_diffusion import FLOWMATCHING_DD
+
 # GPU 2번과 3번만 사용하도록 설정
 os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 
@@ -42,6 +44,9 @@ if __name__ == '__main__':
     parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
     parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
     parser.add_argument("--corrector_steps", default=1, type=int)
+    parser.add_argument("--target_snr", default=0.5, type=float)
+    parser.add_argument("--denoise", action='store_false')
+    parser.set_defaults(denoise=True)
     
     
 
@@ -68,12 +73,13 @@ if __name__ == '__main__':
     odesolver = args.odesolver
     N = args.N
     
+    denoise = args.denoise
     
     atol = args.atol
     rtol = args.rtol
 
-
-
+    corrector_steps = args.corrector_steps
+    target_snr = args.target_snr
 
     # Load score model
     model = VFModel.load_from_checkpoint(
@@ -96,16 +102,19 @@ if __name__ == '__main__':
         
     # print(reverse_starting_point)
     # print(reverse_end_point)
+    
     model.eval(no_ema=False)
     model.cuda()
 
     noisy_files = sorted(glob.glob('{}/*.wav'.format(noisy_dir)))
     
+    
 
 
-
-
+    SDE_VERSION = FLOWMATCHING_DD(model.ode)
     data = {"filename": [], "pesq": [], "estoi": [], "si_sdr": [], "si_sir": [], "si_sar": []}
+    
+
     for cnt, noisy_file in tqdm(enumerate(noisy_files)):
         filename = noisy_file.split('/')[-1]
         
@@ -128,23 +137,71 @@ if __name__ == '__main__':
        
        
         time_schedule = torch.linspace(reverse_starting_point, reverse_end_point, N)
-        z = torch.rand_like(Y)
-         
-        # if odesolver_type == "white":
-        #     sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
-        # elif odesolver_type == "black":
-        #     sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='RK45', device='cuda')
+        with torch.no_grad():
+            prior_std = model.ode._std(reverse_starting_point)
+            initial_noise = torch.randn_like(Y)
+            XT = Y + initial_noise * prior_std
+            
+            for i in range(len(time_schedule)):
+                t = time_schedule[i]
+                try:
+                    stepsize = time_schedule[i]- time_schedule[i+1]
+                except IndexError:
+                    stepsize = time_schedule[i]
+                dt = -stepsize
+                
+                t = (torch.ones(Y.shape[0])*t).to(Y.device)
+                
+                # #predictor probablity flow ode
+                # XT_mean = XT + dt*model(XT,t,Y)
+                
+                #correcting
+                std = model.ode._std(t)
+                
+                for _ in range(corrector_steps):
+                    
+                    grad = - 2 / (SDE_VERSION.diffusion(t)**2) *(model(XT,t,Y) - SDE_VERSION.drift(XT,t,Y))
+                    # print(grad)
+                    noise = torch.randn_like(XT)
+                    stepsize_langevin = (target_snr * std) **2 *2
+                    XT_mean = XT + stepsize_langevin* grad
+                    XT = XT_mean + noise * torch.sqrt(stepsize_langevin*2)
+                    
+                    
+                    
+                 # #predictor                    
+                XT_mean = XT + dt*(2 * model(XT,t,Y)-SDE_VERSION.drift(XT,t,Y))
+                noise = torch.randn_like(XT)
+                
+                XT = XT_mean  + SDE_VERSION.diffusion(t) * noise * torch.sqrt(-dt)
+               
+               
+               
+                
+                
+                
+                
+                
+                
+               
+                
+                
+                
+                
+                
+                
+                
+                
         
-        # else:
-        #     print("{} is not a valid sampler type!".format(odesolver_type))
-        # sample, nfe = sampler()
-        
+        sample = XT_mean if denoise else XT
         
         sample = sample.squeeze()
 
-        y = y * norm_factor
+        
         x_hat = model.to_audio(sample, T_orig)
+        y = y * norm_factor
         x_hat = x_hat * norm_factor
+        
         x_hat = x_hat.squeeze().cpu().numpy()
         end = time.time()
         
@@ -173,7 +230,7 @@ if __name__ == '__main__':
         data["si_sdr"].append(energy_ratios(x_hat, x, n)[0])
         data["si_sir"].append(energy_ratios(x_hat, x, n)[1])
         data["si_sar"].append(energy_ratios(x_hat, x, n)[2])
-
+    print(data['pesq'])
     # Save results as DataFrame
     df = pd.DataFrame(data)
     df.to_csv(join(target_dir, "_results.csv"), index=False)
