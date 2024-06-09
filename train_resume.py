@@ -54,7 +54,7 @@ if __name__ == '__main__':
      # print(model.hparams)
      # print(model.ode)
      
-     model.to('cuda:2')
+     # model.to('cuda:2')
      # print(model.ode.__class__.__name__)
      # Set up logger configuration
      if args.no_wandb:
