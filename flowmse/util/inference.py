@@ -9,7 +9,7 @@ from ..sampling import get_white_box_solver
 # Settings
 sr = 16000
 snr = 0.5
-N = 30
+N = 1
 
 
 

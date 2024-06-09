@@ -259,7 +259,7 @@ class VFModel_finetuning(pl.LightningModule):
 
     def __init__(
         self, backbone, ode, lr=1e-4, ema_decay=0.999, t_eps=0.03, T_rev = 1.0,  loss_abs_exponent=0.5, 
-        num_eval_files=10, loss_type='mse', data_module_cls=None, N_enh=10, enhancement=False, **kwargs
+        num_eval_files=10, loss_type='mse', data_module_cls=None, N_enh=10, enhancement=False, N_min=1, N_max=5, t_eps_min = 0.03, t_eps_max = 0.85, **kwargs
     ):
         """
         Create a new ScoreModel.
@@ -359,17 +359,30 @@ class VFModel_finetuning(pl.LightningModule):
 
     def _step(self, batch, batch_idx):
         x0, y = batch
-        rdm = torch.rand(x0.shape[0], device=x0.device) * (self.T_rev - self.t_eps) + self.t_eps
-        t = torch.min(rdm, torch.tensor(self.T_rev))
-        mean, std = self.ode.marginal_prob(x0, t, y)
-        z = torch.randn_like(x0)  #
-        sigmas = std[:, None, None, None]
-        xt = mean + sigmas * z
-        der_std = self.ode.der_std(t)
-        der_mean = self.ode.der_mean(x0,t,y)
-        condVF = der_std * z + der_mean
-        vectorfield = self(xt, t, y)
-        loss = self._loss(vectorfield, condVF)
+        # print(x0.shape)
+        # print(y.shape)
+        t_eps =random.uniform(self.t_eps_min, self.t_eps_max)
+        # print(t_eps)
+        N_reverse = random.randint(self.N_min, self.N_max)
+        timesteps = torch.linspace(self.T_rev, t_eps, N_reverse, device=y.device)
+        xT, z = self.ode.prior_sampling(y.shape,y)
+        for i in range(len(timesteps)):
+            t = timesteps[i]
+            t = torch.ones(y.shape[0], device=y.device)*t
+            if i != len(timesteps)-1:
+                stepsize = t - timesteps[i+1]
+                dt = -stepsize[:,None,None,None]
+                with torch.no_grad():
+                 
+                    xT = xT + self(xT,t,y) * dt
+            else:
+                stepsize = t
+                dt = -stepsize[:,None,None,None]
+                xT = xT + self(xT,t,y) * dt
+                
+        x_hat_0 = xT
+        
+        loss = self._loss(x_hat_0, x0)
         return loss
     
     def _step_enh(self, batch, batch_idx, N_enh):
@@ -463,3 +476,14 @@ class VFModel_finetuning(pl.LightningModule):
 
     def _istft(self, spec, length=None):
         return self.data_module.istft(spec, length)
+
+
+    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size):
+        self.t_eps_min = t_eps_min
+        self.t_eps_max = t_eps_max
+        self.N_min = N_min
+        self.N_max = N_max
+        self.data_module.batch_size = batch_size 
+        self.data_module.num_workers = 8
+        self.data_module.gpu = True
+        

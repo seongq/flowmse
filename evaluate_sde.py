@@ -77,7 +77,7 @@ if __name__ == '__main__':
     # Load score model
     model = VFModel.load_from_checkpoint(
         checkpoint_file, base_dir="",
-        batch_size=8, num_workers=4, kwargs=dict(gpu=False)
+        batch_size=16, num_workers=0, kwargs=dict(gpu=False)
     )
     
     if args.reverse_starting_point == None:

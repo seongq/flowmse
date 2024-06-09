@@ -602,7 +602,7 @@ class OUVESDE(ODE):
             sigma_max: largest sigma.
             N: number of discretization steps
         """
-        super().__init__(N)
+        super().__init__()
         self.theta = theta
         self.sigma_min = sigma_min
         self.sigma_max = sigma_max

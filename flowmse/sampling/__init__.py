@@ -40,7 +40,7 @@ def get_white_box_solver(
             if Y_prior == None:
                 Y_prior = Y
             
-            xt,_ = ode.prior_sampling(Y_prior.shape, Y_prior)
+            xt, _ = ode.prior_sampling(Y_prior.shape, Y_prior)
             timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) 
             xt = xt.to(Y_prior.device)
             for i in range(len(timesteps)):

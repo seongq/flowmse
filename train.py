@@ -93,16 +93,17 @@ if __name__ == '__main__':
           logger.experiment.log_code(".")
 
      # Set up callbacks for logger
-     #callbacks = [ModelCheckpoint(dirpath=f"logs/{logger.version}", save_last=True, filename='{epoch}-last')]
-     if args.num_eval_files:
-          checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{logger.version}",
-               save_last=True, filename='{epoch}-last')
-          checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-               save_top_k=10, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
-          checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-               save_top_k=10, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
-          #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
-          callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
+
+     callbacks = [ModelCheckpoint(dirpath=f"logs/{logger.version}", save_last=True, filename='{epoch}-last')]
+
+     checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{logger.version}",
+          save_last=True, filename='{epoch}-last')
+     checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
+          save_top_k=10, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+     checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
+          save_top_k=10, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+     #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
+     callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
      trainer = pl.Trainer.from_argparse_args(
