@@ -361,10 +361,10 @@ class VFModel_finetuning(pl.LightningModule):
         x0, y = batch
         # print(x0.shape)
         # print(y.shape)
-        t_eps =random.uniform(self.t_eps_min, self.t_eps_max)
+        # t_eps =random.uniform(self.t_eps_min, self.t_eps_max)
         # print(t_eps)
         N_reverse = random.randint(self.N_min, self.N_max)
-        timesteps = torch.linspace(self.T_rev, t_eps, N_reverse, device=y.device)
+        timesteps = torch.linspace(self.T_rev, self.t_eps, N_reverse, device=y.device)
         xT, z = self.ode.prior_sampling(y.shape,y)
         for i in range(len(timesteps)):
             t = timesteps[i]
@@ -478,7 +478,7 @@ class VFModel_finetuning(pl.LightningModule):
         return self.data_module.istft(spec, length)
 
 
-    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size):
+    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size, inference_N):
         self.t_eps_min = t_eps_min
         self.t_eps_max = t_eps_max
         self.N_min = N_min
@@ -486,4 +486,5 @@ class VFModel_finetuning(pl.LightningModule):
         self.data_module.batch_size = batch_size 
         self.data_module.num_workers = 8
         self.data_module.gpu = True
+        self.inference_N = inference_N
         

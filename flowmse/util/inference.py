@@ -9,12 +9,11 @@ from ..sampling import get_white_box_solver
 # Settings
 sr = 16000
 snr = 0.5
-N = 1
 
 
 
 
-def evaluate_model(model, num_eval_files):
+def evaluate_model(model, num_eval_files, inference_N=30):
     T_rev = model.T_rev
     model.ode.T = T_rev
     t_eps = model.t_eps
@@ -27,6 +26,9 @@ def evaluate_model(model, num_eval_files):
     clean_files = list(clean_files[i] for i in indices)
     noisy_files = list(noisy_files[i] for i in indices)
 
+
+    if model.inference_N:
+        inference_N = model.inference_N
     _pesq = 0
     _si_sdr = 0
     _estoi = 0
@@ -49,7 +51,7 @@ def evaluate_model(model, num_eval_files):
 
 
         # Reverse sampling
-        sampler = get_white_box_solver("euler", model.ode, model, Y.cuda(), T_rev=T_rev, t_eps=t_eps, N=N)
+        sampler = get_white_box_solver("euler", model.ode, model, Y.cuda(), T_rev=T_rev, t_eps=t_eps, N=inference_N)
         
             
         sample, _ = sampler()
