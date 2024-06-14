@@ -3,3 +3,5 @@ lightning_logs/*
 __pycache__
 flowmse/__pycache__/*
 flowmse/sampling/__pycache__/*
+inference.py
+train_sequentially.py

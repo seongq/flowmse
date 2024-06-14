@@ -11,7 +11,7 @@ sr = 16000
 snr = 0.5
 
 
-
+N=30
 
 def evaluate_model(model, num_eval_files, inference_N=30):
     T_rev = model.T_rev
@@ -26,9 +26,11 @@ def evaluate_model(model, num_eval_files, inference_N=30):
     clean_files = list(clean_files[i] for i in indices)
     noisy_files = list(noisy_files[i] for i in indices)
 
-
-    if model.inference_N:
-        inference_N = model.inference_N
+    try:
+        if model.inference_N:
+            inference_N = model.inference_N
+    except:
+        inference_N = N
     _pesq = 0
     _si_sdr = 0
     _estoi = 0

@@ -196,6 +196,7 @@ if __name__ == '__main__':
         file.write("Reverse starting point: {}\n".format(reverse_starting_point))
         file.write("Reverse end point: {}\n".format(reverse_end_point))
         
+        file.write("data: {}\n".format(args.test_dir))
         
         
         if odesolver_type == "black":

@@ -71,7 +71,7 @@ if __name__ == '__main__':
                assert args.T_rev < 1
                logger = WandbLogger(project="SCHRODINGERBRIDGE_FINETUNING", log_model=True, save_dir="logs", name=f"SCHRODINGERBRIDGE_sigma")
           elif model.ode.__class__.__name__ == "FLOWMATCHING":
-               logger = WandbLogger(project=f"{model.ode.__class__.__name__}_FINETUNING", log_model=True, save_dir="logs", name=f"{model.ode.__class__.__name__}_N_min_{args.N_min}_{args.N_max}")
+               logger = WandbLogger(project=f"{model.ode.__class__.__name__}_FINETUNING", log_model=True, save_dir="logs", name=f"{model.ode.__class__.__name__}_N_min_{args.N_min}_N_max_{args.N_max}")
           elif model.ode.__class__.__name__ == "FLOWMATCHING_LIN_VAR":
                logger = WandbLogger(project=f"{model.ode.__class__.__name__}_FINETUNING", log_model=True, save_dir="logs", name=f"{model.ode.__class__.__name__}")
           elif model.ode.__class__.__name__ == "FLOWMATCHING_QUAD_VAR":
@@ -84,18 +84,18 @@ if __name__ == '__main__':
           logger.experiment.log_code(".")
 
      # Set up callbacks for logger
-     callbacks = [ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__N_min_{args.N_min}_{args.N_max}_{logger.version}", save_last=True, filename='{epoch}-last')]
-     checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__N_min_{args.N_min}_{args.N_max}_{logger.version}",
+     callbacks = [ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__train_set_{args.base_dir}_N_min_{args.N_min}_N_max_{args.N_max}_{logger.version}", save_last=True, filename='{epoch}-last')]
+     checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__train_set_{args.base_dir}_N_min_{args.N_min}_N_max_{args.N_max}_{logger.version}",
           save_last=True, filename='{epoch}-last')
-     checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__N_min_{args.N_min}_{args.N_max}_{logger.version}", 
-          save_top_k=5, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
-     checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__N_min_{args.N_min}_{args.N_max}_{logger.version}", 
-          save_top_k=5, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+     checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__train_set_{args.base_dir}_N_min_{args.N_min}_N_max_{args.N_max}_{logger.version}", 
+          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+     checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_finetuning__train_set_{args.base_dir}_N_min_{args.N_min}_N_max_{args.N_max}_{logger.version}", 
+          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
      #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
-     trainer = pl.Trainer(  accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0,1], auto_select_gpus=False, 
+     trainer = pl.Trainer(  accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[2,3], auto_select_gpus=False, 
           logger=logger, log_every_n_steps=10, num_sanity_val_steps=0, max_epochs=10,
           callbacks=callbacks)
 
