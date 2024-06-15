@@ -366,23 +366,39 @@ class VFModel_finetuning(pl.LightningModule):
         N_reverse = random.randint(self.N_min, self.N_max)
         timesteps = torch.linspace(self.T_rev, self.t_eps, N_reverse, device=y.device)
         xT, z = self.ode.prior_sampling(y.shape,y)
-        for i in range(len(timesteps)):
+        x_Starting = xT
+        
+        
+        if self.N_mid:
+            N_mid = random.randint(1, N_reverse)
+        else:
+            N_mid = N_reverse
+        for i in range(N_mid):
             t = timesteps[i]
             t = torch.ones(y.shape[0], device=y.device)*t
             if i != len(timesteps)-1:
                 stepsize = t - timesteps[i+1]
-                dt = -stepsize[:,None,None,None]
-                with torch.no_grad():
-                 
-                    xT = xT + self(xT,t,y) * dt
+                
             else:
                 stepsize = t
-                dt = -stepsize[:,None,None,None]
-                xT = xT + self(xT,t,y) * dt
+            dt = -stepsize
+            
+            
+            if i != N_mid-1:
+                with torch.no_grad():
+                    dt = dt[:,None,None,None]          
+                    xT = xT + self(xT,t,y) * dt
+            else:
+                x_mid = (1-(t+dt))[:,None,None,None]* x0 + (t+dt)[:,None,None,None]* x_Starting
+                print("동작")
+                dt = dt[:,None,None,None]
+                XT = xT + self(xT,t,y) * dt
                 
-        x_hat_0 = xT
+        x_hat_mid = xT
         
-        loss = self._loss(x_hat_0, x0)
+        
+              
+        loss = self._loss(x_hat_mid, x_mid)
         return loss
     
     def _step_enh(self, batch, batch_idx, N_enh):
@@ -478,7 +494,7 @@ class VFModel_finetuning(pl.LightningModule):
         return self.data_module.istft(spec, length)
 
 
-    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size, inference_N):
+    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size, inference_N,mid_stop=False):
         self.t_eps_min = t_eps_min
         self.t_eps_max = t_eps_max
         self.N_min = N_min
@@ -487,4 +503,5 @@ class VFModel_finetuning(pl.LightningModule):
         self.data_module.num_workers = 8
         self.data_module.gpu = True
         self.inference_N = inference_N
+        self.mid_stop = mid_stop
         
