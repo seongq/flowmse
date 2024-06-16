@@ -354,7 +354,7 @@ class SCHRODINGERBRIDGE(ODE):
     #0<t<1
     @staticmethod
     def add_argparse_args(parser):        
-        parser.add_argument("--sigma", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
+        parser.add_argument("--sigma", type=float, default=0.973862, help="The minimum sigma to use. 0.05 by default.")
         # sigma 후보 2* 0.4869345114857456 (bbed), 2* 0.11464032097160769 (ouve)
         parser.add_argument("--T", type=float, default=0.999, help="Reverse starting point of Schrodinger bridge")
         return parser
@@ -363,10 +363,10 @@ class SCHRODINGERBRIDGE(ODE):
         
         super().__init__()        
         self.sigma = sigma
-        self.T = T
+        self.T_rev = T
         
     def copy(self):
-        return SCHRODINGERBRIDGE(self.sigma, self.T )
+        return SCHRODINGERBRIDGE(self.sigma, self.T_rev )
 
     def ode(self,x,t,*args):
         pass    
@@ -383,7 +383,7 @@ class SCHRODINGERBRIDGE(ODE):
     def prior_sampling(self, shape, y):
         if shape != y.shape:
             warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(self.T*torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
+        std = self._std(self.T_rev*torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
         z = torch.randn_like(y)
         
         x_T = y + z * std[:, None, None, None]
@@ -398,25 +398,28 @@ class SCHRODINGERBRIDGE(ODE):
     
     
     
-@ODERegistry.register("flowmatchinglinvar")
-class FLOWMATCHING_LIN_VAR(ODE):
+@ODERegistry.register("flowmatchingconvex")
+class FLOWMATCHINGCONVEX(ODE):
     
     @staticmethod
     def add_argparse_args(parser):        
-        parser.add_argument("--sigma", type=float,  default=0.05, help="The minimum sigma to use. 0.05 by default.")
-        
+        parser.add_argument("--sigma", type=float,  default=0.4869345114857456, help="The minimum sigma to use. 0.05 by default.")
+        parser.add_argument("--n", type=int,  default=2, help="t**(n/2), n")
+        parser.add_argument("--T", type=float, default=0.999)
         # sigma 후보 0.4869345114857456 (bbed), 0.11464032097160769 (ouve)
         
         return parser
 
-    def __init__(self, sigma=0.05, **ignored_kwargs):
+    def __init__(self, sigma=0.4869345114857456, n=2, T=0.999, **ignored_kwargs):
         
         super().__init__()        
         self.sigma = sigma
+        self.n = n
+        self.T_rev = T
         
         
     def copy(self):
-        return FLOWMATCHING_LIN_VAR(self.sigma )
+        return FLOWMATCHINGCONVEX(self.sigma, self.n, self.T_rev )
 
     def ode(self,x,t,*args):
         pass    
@@ -425,7 +428,7 @@ class FLOWMATCHING_LIN_VAR(ODE):
 
     def _std(self, t):
 
-        return torch.sqrt(t)*self.sigma
+        return (torch.sqrt(t)**self.n)*self.sigma
 
     def marginal_prob(self, x0, t, y):
         return self._mean(x0, t, y), self._std(t)
@@ -433,7 +436,7 @@ class FLOWMATCHING_LIN_VAR(ODE):
     def prior_sampling(self, shape, y):
         if shape != y.shape:
             warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
+        std = self._std(self.T_rev*torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
         z = torch.randn_like(y)
         
         x_T = y + z * std[:, None, None, None]
@@ -444,29 +447,32 @@ class FLOWMATCHING_LIN_VAR(ODE):
         
     def der_std(self,t):
         
-        return (1/2  * self.sigma / torch.sqrt(t))[:,None,None,None]
+        return self.n * 1/2 * ((t[:,None,None,None])**(self.n/2-1)) * self.sigma
     
     
     
-@ODERegistry.register("flowmatchingquadvar")
-class FLOWMATCHING_QUAD_VAR(ODE):
+@ODERegistry.register("flowmatchingconcave")
+class FLOWMATCHINGCONCAVE(ODE):
     
     @staticmethod
     def add_argparse_args(parser):        
-        parser.add_argument("--sigma", type=float,  default=0.05, help="The minimum sigma to use. 0.05 by default.")
-        
+        parser.add_argument("--sigma", type=float,  default=0.4869345114857456, help="The minimum sigma to use. 0.05 by default.")
+        parser.add_argument("--T", type=float, default=0.999)
+        parser.add_argument("--n", type=int, default=2, help="(t*(2-t))**(n/2), n")
         # sigma 후보 0.4869345114857456 (bbed), 0.11464032097160769 (ouve)
         
         return parser
 
-    def __init__(self, sigma=0.05, **ignored_kwargs):
+    def __init__(self, sigma=0.4869345114857456,n=2, T=0.999, **ignored_kwargs):
         
         super().__init__()        
         self.sigma = sigma
+        self.n = n
+        self.T_rev = T
         
         
     def copy(self):
-        return FLOWMATCHING_QUAD_VAR(self.sigma )
+        return FLOWMATCHINGCONCAVE(self.sigma, self.n, self.T_rev)
 
     def ode(self,x,t,*args):
         pass    
@@ -475,7 +481,7 @@ class FLOWMATCHING_QUAD_VAR(ODE):
 
     def _std(self, t):
 
-        return torch.sqrt(t*(2-t))*self.sigma
+        return self.sigma*(t*(2-t)**(self.n/2))
 
     def marginal_prob(self, x0, t, y):
         return self._mean(x0, t, y), self._std(t)
@@ -483,7 +489,7 @@ class FLOWMATCHING_QUAD_VAR(ODE):
     def prior_sampling(self, shape, y):
         if shape != y.shape:
             warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
+        std = self._std(self.T_rev* torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
         z = torch.randn_like(y)
         
         x_T = y + z * std[:, None, None, None]
@@ -494,7 +500,7 @@ class FLOWMATCHING_QUAD_VAR(ODE):
         
     def der_std(self,t):
         
-        return (self.sigma *(1-t) / torch.sqrt(t*(2-t)))[:,None,None,None]
+        return self.sigma * self.n * (1-t) * ( (t* (2-t))**(self.n/2-1))[:,None,None,None]
     
     
 
@@ -504,9 +510,10 @@ class BBED(ODE):
     def add_argparse_args(parser):
         parser.add_argument("--k", type=float, default = 2.6, help="base factor for diffusion term") 
         parser.add_argument("--theta", type=float, default = 0.52, help="root scale factor for diffusion term.")
+        parser.add_argument("--T", type=float, default=0.999)
         return parser
 
-    def __init__(self,  k, theta,  **kwargs):
+    def __init__(self,  k, theta,T , **kwargs):
         """Construct an Brownian Bridge with Exploding Diffusion Coefficient SDE with parameterization as in the paper.
         dx = (y-x)/(Tc-t) dt + sqrt(theta)*k^t dw
         """
@@ -515,10 +522,11 @@ class BBED(ODE):
         self.logk = np.log(self.k)
         self.theta = theta
         self.Eilog = sc.expi(-2*self.logk)
+        self.T_rev = T
 
 
     def copy(self):
-        return BBED(self.k, self.theta)
+        return BBED(self.k, self.theta, self.T_rev)
 
     def ode(self, x, t, *args):
         pass
@@ -543,7 +551,7 @@ class BBED(ODE):
     def prior_sampling(self, shape, y):
         if shape != y.shape:
             warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(self.T*torch.ones((y.shape[0],), device=y.device))
+        std = self._std(self.T_rev*torch.ones((y.shape[0],), device=y.device))
         z = torch.randn_like(y)
         x_T = y + z * std[:, None, None, None]
         return x_T, z

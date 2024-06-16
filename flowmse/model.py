@@ -64,7 +64,7 @@ class VFModel(pl.LightningModule):
         self._error_loading_ema = False
         self.t_eps = t_eps
         self.T_rev = T_rev
-        self.ode.T = T_rev
+        self.ode.T_rev = T_rev
         self.loss_type = loss_type
         self.num_eval_files = num_eval_files
         self.loss_abs_exponent = loss_abs_exponent
@@ -289,7 +289,7 @@ class VFModel_finetuning(pl.LightningModule):
         self._error_loading_ema = False
         self.t_eps = t_eps
         self.T_rev = T_rev
-        self.ode.T = T_rev
+        self.ode.T_rev = T_rev
         self.loss_type = loss_type
         self.num_eval_files = num_eval_files
         self.loss_abs_exponent = loss_abs_exponent
@@ -369,35 +369,55 @@ class VFModel_finetuning(pl.LightningModule):
         x_Starting = xT
         
         
-        if self.N_mid:
+        if self.mid_stop or self.mid_x_mean:
             N_mid = random.randint(1, N_reverse)
         else:
             N_mid = N_reverse
-        for i in range(N_mid):
-            t = timesteps[i]
-            t = torch.ones(y.shape[0], device=y.device)*t
-            if i != len(timesteps)-1:
-                stepsize = t - timesteps[i+1]
+        
+        if not self.mid_x_mean:
+            for i in range(N_mid):
+                t = timesteps[i]
+                t = torch.ones(y.shape[0], device=y.device)*t
+                if i != len(timesteps)-1:
+                    stepsize = t - timesteps[i+1]
+                    
+                else:
+                    stepsize = t
+                dt = -stepsize
                 
-            else:
-                stepsize = t
-            dt = -stepsize
-            
-            
-            if i != N_mid-1:
-                with torch.no_grad():
-                    dt = dt[:,None,None,None]          
+                
+                if i != N_mid-1:
+                    with torch.no_grad():
+                        dt = dt[:,None,None,None]          
+                        xT = xT + self(xT,t,y) * dt
+                else:
+                    x_mid = (1-(t+dt))[:,None,None,None]* x0 + (t+dt)[:,None,None,None]* x_Starting
+                    print("동작")
+                    dt = dt[:,None,None,None]
                     xT = xT + self(xT,t,y) * dt
-            else:
-                x_mid = (1-(t+dt))[:,None,None,None]* x0 + (t+dt)[:,None,None,None]* x_Starting
-                print("동작")
-                dt = dt[:,None,None,None]
-                XT = xT + self(xT,t,y) * dt
+        else:
+            for i in range(N_mid):
+                t = timesteps[i]
+                t = torch.ones(y.shape[0], device=y.device)*t
+                if i != len(timesteps)-1:
+                    stepsize = t - timesteps[i+1]
                 
-        x_hat_mid = xT
+                else:
+                    stepsize = t
+                dt = -stepsize
+                
+                
+                if i != N_mid-1:
+                    with torch.no_grad():
+                        dt = dt[:,None,None,None]          
+                        xT = xT + self(xT,t,y) * dt
+                else:
+                    x_mid = (1-(t+dt))[:,None,None,None]* x0 + (t+dt)[:,None,None,None]* xT
+                    print("mid_x_mean 동작")
+                    dt = dt[:,None,None,None]
+                    xT = xT + self(xT,t,y) * dt
         
-        
-              
+        x_hat_mid = xT              
         loss = self._loss(x_hat_mid, x_mid)
         return loss
     
@@ -494,7 +514,7 @@ class VFModel_finetuning(pl.LightningModule):
         return self.data_module.istft(spec, length)
 
 
-    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size, inference_N,mid_stop=False):
+    def add_para(self, N_min, N_max, t_eps_min, t_eps_max, batch_size, inference_N,mid_stop=False, mid_x_mean=False):
         self.t_eps_min = t_eps_min
         self.t_eps_max = t_eps_max
         self.N_min = N_min
@@ -504,4 +524,5 @@ class VFModel_finetuning(pl.LightningModule):
         self.data_module.gpu = True
         self.inference_N = inference_N
         self.mid_stop = mid_stop
+        self.mid_x_mean = False
         

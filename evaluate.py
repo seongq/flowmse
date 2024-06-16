@@ -85,7 +85,7 @@ if __name__ == '__main__':
     else:
         reverse_starting_point = args.reverse_starting_point
         
-    model.ode.T = reverse_starting_point
+    model.ode.T_rev = reverse_starting_point
         
     if args.reverse_end_point == None:
         reverse_end_point = model.t_eps
@@ -128,7 +128,7 @@ if __name__ == '__main__':
         if odesolver_type == "white":
             sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
         elif odesolver_type == "black":
-            sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=1.0, t_eps=0.03, N=30,  method='RK45', device='cuda')
+            sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=reverse_starting_point, t_eps=0.03, N=30,  method='RK45', device='cuda')
         
         else:
             print("{} is not a valid sampler type!".format(odesolver_type))

@@ -11,11 +11,11 @@ sr = 16000
 snr = 0.5
 
 
-N=30
+N=5
 
 def evaluate_model(model, num_eval_files, inference_N=30):
     T_rev = model.T_rev
-    model.ode.T = T_rev
+    model.ode.T_rev = T_rev
     t_eps = model.t_eps
     clean_files = model.data_module.valid_set.clean_files
     noisy_files = model.data_module.valid_set.noisy_files
