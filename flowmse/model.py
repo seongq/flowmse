@@ -412,7 +412,7 @@ class VFModel_finetuning(pl.LightningModule):
                         dt = dt[:,None,None,None]          
                         xT = xT + self(xT,t,y) * dt
                 else:
-                    x_mid = (1-(t+dt))[:,None,None,None]* x0 + (t+dt)[:,None,None,None]* xT
+                    x_mid = (-dt/t)[:,None,None,None]* x0 + (1+dt/t)[:,None,None,None]* xT
                     print("mid_x_mean 동작")
                     dt = dt[:,None,None,None]
                     xT = xT + self(xT,t,y) * dt

@@ -29,18 +29,21 @@ import pdb
 
 if __name__ == '__main__':
     parser = ArgumentParser()
-    parser.add_argument("--folder_destination", type=str, help="Name of destination folder.")
+    parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
+    parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
     parser.add_argument("--test_dir", type=str, required=True, help='Directory containing the test data')
-    parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
     parser.add_argument("--odesolver_type", type=str, choices=("white", "black"), default="white",
                         help="Specify the sampler type")
     parser.add_argument("--odesolver", type=str,
                         default="euler", help="Predictor class for the PC sampler.")
     parser.add_argument("--reverse_starting_point", type=float, default=None, help="Starting point for the reverse SDE.")
     parser.add_argument("--reverse_end_point", type=float, default=None)
+    
+    
+    parser.add_argument("--folder_destination", type=str, help="Name of destination folder.")    
+    parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
     parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
-    parser.add_argument("--atol", type=float, default=1e-5, help="Absolute tolerance for the ODE sampler")
-    parser.add_argument("--rtol", type=float, default=1e-5, help="Relative tolerance for the ODE sampler")
+    
     
     
 

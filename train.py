@@ -53,7 +53,7 @@ if __name__ == '__main__':
      # Parse args and separate into groups
      args = parser.parse_args()
      arg_groups = get_argparse_groups(parser)
-
+     dataset = os.path.basename(os.path.normpath(args.base_dir))
      # Initialize logger, trainer, model, datamodule
      model = VFModel(
           backbone=args.backbone, ode=args.ode, data_module_cls=data_module_cls,
@@ -84,9 +84,13 @@ if __name__ == '__main__':
           elif ode_class.__name__ == "FLOWMATCHING_LIN_VAR":
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING_QUAD_VAR":
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "BBED":
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_k_{args.k}_theta_{args.theta}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")        
+               name_save_dir_path = f"k_{args.k}_theta_{args.theta}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
+               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=name_save_dir_path) 
+          elif ode_class.__name__ in ['FLOWMATCHINGCONCAVE', 'FLOWMATCHINGCONVEX']:
+               name_save_dir_path = f"sigma_{args.sigma}_n_{args.n}_T_rev_{args.T_rev}_dataset_{dataset}"
+               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=name_save_dir_path) 
           
           else:
                raise ValueError(f"{ode_class.__name__}에 대한 configuration이 만들어지지 않았음")
@@ -94,21 +98,22 @@ if __name__ == '__main__':
 
      # Set up callbacks for logger
 
-     callbacks = [ModelCheckpoint(dirpath=f"logs/{logger.version}", save_last=True, filename='{epoch}-last')]
+     model_dirpath = f"logs/{ode_class.__name__}_{name_save_dir_path}_{logger.version}"
+     callbacks = [ModelCheckpoint(dirpath=model_dirpath, save_last=True, filename='{epoch}-last')]
 
-     checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{logger.version}",
+     checkpoint_callback_last = ModelCheckpoint(dirpath=model_dirpath,
           save_last=True, filename='{epoch}-last')
-     checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-          save_top_k=10, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
-     checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{logger.version}", 
-          save_top_k=10, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+     checkpoint_callback_pesq = ModelCheckpoint(dirpath=model_dirpath, 
+          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+     checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=model_dirpath, 
+          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
      #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
      trainer = pl.Trainer.from_argparse_args(
           arg_groups['pl.Trainer'],
-          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[2,3], auto_select_gpus=False, 
+          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0,1], auto_select_gpus=False, 
           logger=logger, log_every_n_steps=10, num_sanity_val_steps=0, max_epochs=250,
           callbacks=callbacks
      )
