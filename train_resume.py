@@ -91,14 +91,14 @@ if __name__ == '__main__':
      checkpoint_callback_last = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_N_min_{args.N_min}_N_max_{args.N_max}_dataset_{dataset}_mid_stop_{mid_stop}_mid_x_mean_{mid_x_mean}_{logger.version}",
           save_last=True, filename='{epoch}-last')
      checkpoint_callback_pesq = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_N_min_{args.N_min}_N_max_{args.N_max}_dataset_{dataset}_mid_stop_{mid_stop}_mid_x_mean_{mid_x_mean}_{logger.version}", 
-          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+          save_top_k=10, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
      checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=f"logs/{model.ode.__class__.__name__}_N_min_{args.N_min}_N_max_{args.N_max}_dataset_{dataset}_mid_stop_{mid_stop}_mid_x_mean_{mid_x_mean}_{logger.version}", 
-          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+          save_top_k=0, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
      #callbacks += [checkpoint_callback_pesq, checkpoint_callback_si_sdr] 
      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
-     trainer = pl.Trainer(  accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0,1], auto_select_gpus=False, 
+     trainer = pl.Trainer(  accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[2,3], auto_select_gpus=False, 
           logger=logger, log_every_n_steps=10, num_sanity_val_steps=0, max_epochs=10,
           callbacks=callbacks)
 

@@ -134,7 +134,7 @@ class VFModel(pl.LightningModule):
 
     def _step(self, batch, batch_idx):
         x0, y = batch
-        rdm = torch.rand(x0.shape[0], device=x0.device) * (self.T_rev - self.t_eps) + self.t_eps
+        rdm = (1-torch.rand(x0.shape[0], device=x0.device)) * (self.T_rev - self.t_eps) + self.t_eps
         t = torch.min(rdm, torch.tensor(self.T_rev))
         mean, std = self.ode.marginal_prob(x0, t, y)
         z = torch.randn_like(x0)  #

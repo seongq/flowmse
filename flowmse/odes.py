@@ -207,15 +207,17 @@ class FLOWMATCHING(ODE):
     def add_argparse_args(parser):        
         parser.add_argument("--sigma-min", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
         parser.add_argument("--sigma-max",type=float, default=1.0 , help="The maximum sigma to use. 1 by default") 
+        parser.add_argument("--T_sampling",type=float, default=1.0)
         # sigma-max 후보 0.4869345114857456 (bbed), 0.11464032097160769 (ouve)
         # 위의 sigma_max를 취한다면 sigma_min=0 (bbed) 또는 sigma_max = 0(ouve)
         return parser
 
-    def __init__(self, sigma_min=0.05, sigma_max = 1.0, **ignored_kwargs):
+    def __init__(self, sigma_min=0.05, sigma_max = 1.0, T_sampling=1.0,**ignored_kwargs):
         
         super().__init__()        
         self.sigma_min = sigma_min
         self.sigma_max = sigma_max
+        self.T_sampling = T_sampling
         
     def copy(self):
         return FLOWMATCHING(self.sigma_min,self.sigma_max  )

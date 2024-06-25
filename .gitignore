@@ -5,3 +5,7 @@ flowmse/__pycache__/*
 flowmse/sampling/__pycache__/*
 inference.py
 train_sequentially.py
+*.ipynb
+evaluatekk*
+evaluateseq*
+*DNS-Challenge

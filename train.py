@@ -80,6 +80,7 @@ if __name__ == '__main__':
                assert args.T_rev < 1
                logger = WandbLogger(project="SCHRODINGERBRIDGE", log_model=True, save_dir="logs", name=f"SCHRODINGERBRIDGE_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING":
+               name_save_dir_path = f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING_LIN_VAR":
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
@@ -98,7 +99,7 @@ if __name__ == '__main__':
 
      # Set up callbacks for logger
 
-     model_dirpath = f"logs/{ode_class.__name__}_{name_save_dir_path}_{logger.version}"
+     model_dirpath = f"logs/{name_save_dir_path}_{logger.version}"
      callbacks = [ModelCheckpoint(dirpath=model_dirpath, save_last=True, filename='{epoch}-last')]
 
      checkpoint_callback_last = ModelCheckpoint(dirpath=model_dirpath,
@@ -113,7 +114,7 @@ if __name__ == '__main__':
      # Initialize the Trainer and the DataModule
      trainer = pl.Trainer.from_argparse_args(
           arg_groups['pl.Trainer'],
-          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0,1], auto_select_gpus=False, 
+          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[2,3], auto_select_gpus=False, 
           logger=logger, log_every_n_steps=10, num_sanity_val_steps=0, max_epochs=250,
           callbacks=callbacks
      )
