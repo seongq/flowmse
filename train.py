@@ -81,7 +81,7 @@ if __name__ == '__main__':
                logger = WandbLogger(project="SCHRODINGERBRIDGE", log_model=True, save_dir="logs", name=f"SCHRODINGERBRIDGE_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING":
                name_save_dir_path = f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
           elif ode_class.__name__ == "FLOWMATCHING_LIN_VAR":
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "FLOWMATCHING_QUAD_VAR":

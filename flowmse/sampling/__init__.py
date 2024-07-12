@@ -26,7 +26,7 @@ def from_flattened_numpy(x, shape):
 
 def get_white_box_solver(
     odesolver_name,  ode, VF_fn, Y, Y_prior=None,
-    T_rev=1.0, t_eps=0.03, N=30, **kwargs
+    T_rev=1.0, t_eps=0.03, N=30, stepsize_type="uniform", **kwargs
 ):
    
     odesolver_cls = ODEsolverRegistry.get_by_name(odesolver_name)
@@ -42,9 +42,15 @@ def get_white_box_solver(
             
             xt, _ = ode.prior_sampling(Y_prior.shape, Y_prior)
             if odesolver_name=="euler":
-                timesteps = torch.linspace(T_rev, T_rev/N, N, device=Y.device) 
+                if stepsize_type=="uniform":
+                    timesteps = torch.linspace(T_rev, T_rev/N, N, device=Y.device) 
+                elif stepsize_type=="gerkmann":
+                    timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device)
+                else:
+                    raise("stepsize 다시 설정, stepsize type는 uniform혹은 gerkmann")
+                # timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) 
             else:
-                timesteps = torch.linsapce(T_rev, t_eps, N, device=Y.device)
+                timesteps = torch.linsapce(T_rev, t_eps+0.001, N, device=Y.device)
             xt = xt.to(Y_prior.device)
             for i in range(len(timesteps)):
                 t = timesteps[i]
@@ -53,7 +59,7 @@ def get_white_box_solver(
                 else:
                     stepsize = timesteps[-1]
                     if odesolver_name in ['midpoint', 'heun']:
-                        stepsize = timesteps[-1]-t_eps
+                        stepsize = timesteps[-1]
                 vec_t = torch.ones(Y.shape[0], device=Y.device) * t
                 
                 xt = odesolver.update_fn(xt, vec_t, Y, stepsize)

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
     parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
     
-    
+    parser.add_argument("--stepsize_type", type=str, default="uniform")
     
 
     args = parser.parse_args()
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     odesolver = args.odesolver
     N = args.N
     
-    
+    stepsize_type = args.stepsize_type
     atol = args.atol
     rtol = args.rtol
 
@@ -129,7 +129,7 @@ if __name__ == '__main__':
         
         
         if odesolver_type == "white":
-            sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
+            sampler = get_white_box_solver(odesolver, model.ode, model, Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N,stepsize_type=stepsize_type)
         elif odesolver_type == "black":
             sampler = get_black_box_solver(model.ode, model, Y.cuda(),  rtol=1e-5, atol=1e-5,  T_rev=reverse_starting_point, t_eps=0.03, N=30,  method='RK45', device='cuda')
         
