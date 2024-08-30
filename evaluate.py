@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
     parser.add_argument("--N", type=int, default=30, help="Number of reverse steps")
     
-    parser.add_argument("--stepsize_type", type=str, default="uniform")
+    parser.add_argument("--stepsize_type", type=str, default="uniform", choices=("gerkmann, uniform"))
     
 
     args = parser.parse_args()

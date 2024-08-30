@@ -73,6 +73,8 @@ if __name__ == '__main__':
           elif ode_class.__name__ == "OTFLOW_DET":
                logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_det_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "STRAIGHTCFM":
+               name_save_dir_path = f"{ode_class.__name__}_sigma_min_{args.sigma_min}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
+
                logger = WandbLogger(project="STRAIGHTCFM", log_model=True, save_dir="logs", name=f"STRAIGHT_CFM_{args.sigma_min}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "STOCHASTICINTERPOLANT":
                logger = WandbLogger(project="STOCHASTICINTERPOLANT", log_model=True, save_dir="logs", name=f"STOCHASTICINTERPOLANT_T_rev_{args.T_rev}_t_eps_{args.t_eps}")

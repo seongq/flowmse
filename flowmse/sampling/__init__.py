@@ -50,7 +50,10 @@ def get_white_box_solver(
                     raise("stepsize 다시 설정, stepsize type는 uniform혹은 gerkmann")
                 # timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) 
             else:
-                timesteps = torch.linsapce(T_rev, t_eps+0.001, N, device=Y.device)
+                if stepsize_type=="uniform":
+                    timesteps = torch.linspace(T_rev, T_rev/N, N, device=Y.device)
+                elif stepsize_type=="gerkmann":
+                    timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device)
             xt = xt.to(Y_prior.device)
             for i in range(len(timesteps)):
                 t = timesteps[i]
@@ -60,6 +63,8 @@ def get_white_box_solver(
                     stepsize = timesteps[-1]
                     if odesolver_name in ['midpoint', 'heun']:
                         stepsize = timesteps[-1]
+                        if odesolver_name == "heun":
+                            stepsize = timesteps[-1]/2
                 vec_t = torch.ones(Y.shape[0], device=Y.device) * t
                 
                 xt = odesolver.update_fn(xt, vec_t, Y, stepsize)
