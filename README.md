@@ -8,8 +8,3 @@ This repository builds upon a previous work, that can be found here https://gith
 * 2024.06.07 BBED 사용할 수 있게 만들었습니다.
 * 2024.05.14 OTFLOW_DET 버전이 개발되었습니다. 17:26
 * 2024.05.14 OTFLOW 기본버전이 개발되었습니다. 13:45
-
-
-
-아래의 configuration에 잘되었습니다. 다른 매개변수 찾을 수 있다면 찾아주세요.
-sigma는 BBED는 논문을 참고하여 잡았습니다.
