@@ -14,3 +14,6 @@ evaluateseq*
 DNS-Challenge/
 DNS-Challenge
 evaluate_sequentially*
+evaluate_sde.py
+flowmatching_vctk.csv
+train.resume.py
