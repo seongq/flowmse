@@ -68,7 +68,9 @@ if __name__ == '__main__':
      if args.no_wandb:
           logger = TensorBoardLogger(save_dir="logs", name="tensorboard")
      else:
-          if ode_class.__name__ == "OTFLOW":
+          if ode_class.__name__ == "FLOWMATCHING":
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
+          elif ode_class.__name__ == "OTFLOW":
                logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_sigma-min_{args.sigma_min}_t_eps_{args.t_eps}")
           elif ode_class.__name__ == "OTFLOW_DET":
                logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_det_t_eps_{args.t_eps}")
