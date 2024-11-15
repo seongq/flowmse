@@ -52,147 +52,6 @@ class ODE(abc.ABC):
         pass
 
 
-@ODERegistry.register("otflow")
-class OTFLOW(ODE):
-    # Flow Matching for Generative Modelling, ICLR, Lipman et al.
-    # mean_t = (1-t)x0 + tx1, sigma_t = t+sigma_min*(1-t)
-    @staticmethod
-    def add_argparse_args(parser):        
-        parser.add_argument("--sigma-min", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
-        
-        return parser
-
-    def __init__(self, sigma_min, **ignored_kwargs):
-        
-        super().__init__()        
-        self.sigma_min = sigma_min
-        
-    def copy(self):
-        return OTFLOW(self.sigma_min)
-
-    def ode(self,x,t,*args):
-        pass    
-    def _mean(self, x0, t, y):       
-        return (1-t)[:,None,None,None]*x0 + t[:,None,None,None]*y
-
-    def _std(self, t):
-        sigma_min = self.sigma_min
-        return t+sigma_min*(1-t)
-
-    def marginal_prob(self, x0, t, y):
-        return self._mean(x0, t, y), self._std(t)
-
-    def prior_sampling(self, shape, y):
-        if shape != y.shape:
-            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
-        z = torch.randn_like(y)
-        
-        x_T = y + z * std[:, None, None, None]
-        return x_T, z
-
-    def der_mean(self,x0,t,y):
-        return y-x0
-        
-    def der_std(self,t):
-        sigma_min = self.sigma_min
-        return 1-sigma_min
-    
-
-
-@ODERegistry.register("condflow")
-class CONDFLOW(ODE):
-    """ mu_t = (1-t)x0 + ty, sigma_t = sigma_min"""
-    @staticmethod
-    def add_argparse_args(parser):        
-        parser.add_argument("--sigma-min", type=float, default=0.05, help="The minimum sigma to use. 0.05 by default.")
-        return parser
-
-    def __init__(self, sigma_min=0.05, **ignored_kwargs):
-        
-        super().__init__()        
-        self.sigma_min = sigma_min
-        
-    def copy(self):
-        return CONDFLOW( )
-
-    def ode(self,x,t,*args):
-        pass    
-    def _mean(self, x0, t, y):       
-        return (1-t)[:,None,None,None]*x0 + t[:,None,None,None]*y
-
-    def _std(self, t):
-
-        return self.sigma_min*torch.ones_like(t)
-
-    def marginal_prob(self, x0, t, y):
-        return self._mean(x0, t, y), self._std(t)
-
-    def prior_sampling(self, shape, y):
-        if shape != y.shape:
-            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
-        z = torch.randn_like(y)
-        
-        x_T = y + z * std[:, None, None, None]
-        return x_T, z
-
-    def der_mean(self,x0,t,y):
-        return y-x0
-        
-    def der_std(self,t):
-        
-        return 0
-
-    
-@ODERegistry.register("otflow_det")
-class OTFLOW_DET(ODE):
-    @staticmethod
-    def add_argparse_args(parser):        
-        
-        return parser
-
-    def __init__(self,  **ignored_kwargs):
-        
-        super().__init__()        
-
-        
-    def copy(self):
-        return OTFLOW_DET( )
-
-    def ode(self,x,t,*args):
-        pass    
-    def _mean(self, x0, t, y):       
-        return (1-t)[:,None,None,None]*x0 + t[:,None,None,None]*y
-
-    def _std(self, t):
-
-        return 0*torch.ones_like(t)
-
-    def marginal_prob(self, x0, t, y):
-        return self._mean(x0, t, y), self._std(t)
-
-    def prior_sampling(self, shape, y):
-        if shape != y.shape:
-            warnings.warn(f"Target shape {shape} does not match shape of y {y.shape}! Ignoring target shape.")
-        std = self._std(torch.ones((y.shape[0],), device=y.device)) #inference시 사이즈 맞추기 위함
-        z = torch.randn_like(y)
-        
-        x_T = y + z * std[:, None, None, None]
-        return x_T, z
-
-    def der_mean(self,x0,t,y):
-        return y-x0
-        
-    def der_std(self,t):
-        
-        return 0
-    
-    
-    
-    
-
-
 
 ######################여기 밑에 것이 학습할 대상임##############
 
@@ -205,17 +64,16 @@ class FLOWMATCHING(ODE):
     #t범위 0<t<=1
     @staticmethod
     def add_argparse_args(parser):        
-        parser.add_argument("--sigma-min", type=float, default=0.00, help="The minimum sigma to use. 0.05 by default.")
-        parser.add_argument("--sigma-max",type=float, default=0.5 , help="The maximum sigma to use. 1 by default") 
-        parser.add_argument("--T_sampling",type=float, default=1.0)
+        parser.add_argument("--sigma_min", type=float, default=0.00, help="The minimum sigma to use. 0.05 by default.")
+        parser.add_argument("--sigma_max",type=float, default=0.5 , help="The maximum sigma to use. 1 by default") 
         return parser
 
-    def __init__(self, sigma_min=0.00, sigma_max =0.5, T_sampling=1.0,**ignored_kwargs):
+    def __init__(self, sigma_min=0.00, sigma_max =0.5, **ignored_kwargs):
         
         super().__init__()        
         self.sigma_min = sigma_min
         self.sigma_max = sigma_max
-        self.T_sampling = T_sampling
+        
         
     def copy(self):
         return FLOWMATCHING(self.sigma_min,self.sigma_max  )
@@ -258,7 +116,6 @@ class STOCHASTICINTERPOLANT(ODE):
     #t는 0에서 1까지 암거나 다됨 0<=t<=1
     @staticmethod
     def add_argparse_args(parser):        
-        
         return parser
 
     def __init__(self,  **ignored_kwargs):
@@ -307,15 +164,13 @@ class SCHRODINGERBRIDGE(ODE):
     #0<t<1
     @staticmethod
     def add_argparse_args(parser):        
-        parser.add_argument("--sigma", type=float, default=0.973862, help="The minimum sigma to use. 0.05 by default.")
-        parser.add_argument("--T", type=float, default=0.999, help="Reverse starting point of Schrodinger bridge")
+        parser.add_argument("--sigma", type=float, default=0.95, help="The minimum sigma to use. 0.05 by default.")
         return parser
 
-    def __init__(self, sigma, T=0.999,**ignored_kwargs):
+    def __init__(self, sigma, **ignored_kwargs):
         
         super().__init__()        
         self.sigma = sigma
-        self.T_rev = T
         
     def copy(self):
         return SCHRODINGERBRIDGE(self.sigma, self.T_rev )

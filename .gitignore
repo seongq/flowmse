@@ -17,3 +17,4 @@ evaluate_sequentially*
 evaluate_sde.py
 flowmatching_vctk.csv
 train_resume.py
+train_.sh

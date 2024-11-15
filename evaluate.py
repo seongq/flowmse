@@ -149,10 +149,6 @@ if __name__ == '__main__':
         end = time.time()
         
         
-        # x_hat = model.enhance(y, sampler_type=sampler_type, predictor=predictor, 
-        #         corrector=corrector, corrector_steps=corrector_steps, N=N, snr=snr,
-        #         atol=atol, rtol=rtol, timestep_type=timestep_type, correct_stepsize=correct_stepsize)
-
 
         # Convert to numpy
         x = x.squeeze().cpu().numpy()

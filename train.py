@@ -14,6 +14,18 @@ from flowmse.data_module import SpecsDataModule
 from flowmse.odes import ODERegistry
 from flowmse.model import VFModel
 
+from datetime import datetime
+import pytz
+
+# 한국 표준시 (KST) 설정
+kst = pytz.timezone('Asia/Seoul')
+
+# 현재 한국 시간 가져오기
+now_kst = datetime.now(kst)
+
+# YYYYMMDDHHMMSS 형태로 포맷팅
+formatted_time_kst = now_kst.strftime("%Y%m%d%H%M%S")
+
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 def get_argparse_groups(parser):
@@ -69,33 +81,15 @@ if __name__ == '__main__':
           logger = TensorBoardLogger(save_dir="logs", name="tensorboard")
      else:
           if ode_class.__name__ == "FLOWMATCHING":
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "OTFLOW":
-               logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_sigma-min_{args.sigma_min}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "OTFLOW_DET":
-               logger = WandbLogger(project="OTFLOW", log_model=True, save_dir="logs", name=f"otflow_det_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "STRAIGHTCFM":
-               name_save_dir_path = f"{ode_class.__name__}_sigma_min_{args.sigma_min}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
-
-               logger = WandbLogger(project="STRAIGHTCFM", log_model=True, save_dir="logs", name=f"STRAIGHT_CFM_{args.sigma_min}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "STOCHASTICINTERPOLANT":
-               logger = WandbLogger(project="STOCHASTICINTERPOLANT", log_model=True, save_dir="logs", name=f"STOCHASTICINTERPOLANT_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "SCHRODINGERBRIDGE":
-               assert args.T_rev < 1
-               logger = WandbLogger(project="SCHRODINGERBRIDGE", log_model=True, save_dir="logs", name=f"SCHRODINGERBRIDGE_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "FLOWMATCHING":
-               name_save_dir_path = f"{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
+               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
                logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
-          elif ode_class.__name__ == "FLOWMATCHING_LIN_VAR":
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "FLOWMATCHING_QUAD_VAR":
-               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=f"{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}")
-          elif ode_class.__name__ == "BBED":
-               name_save_dir_path = f"k_{args.k}_theta_{args.theta}_T_rev_{args.T_rev}_t_eps_{args.t_eps}_dataset_{dataset}"
-               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=name_save_dir_path) 
-          elif ode_class.__name__ in ['FLOWMATCHINGCONCAVE', 'FLOWMATCHINGCONVEX']:
-               name_save_dir_path = f"sigma_{args.sigma}_n_{args.n}_T_rev_{args.T_rev}_dataset_{dataset}"
-               logger = WandbLogger(project=f"{ode_class.__name__}",  save_dir="logs", name=name_save_dir_path) 
+          elif ode_class.__name__ == "STOCHASTICINTERPOLANT":
+               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
+          elif ode_class.__name__ == "SCHRODINGERBRIDGE":
+               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
+               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
+          
           
           else:
                raise ValueError(f"{ode_class.__name__}에 대한 configuration이 만들어지지 않았음")

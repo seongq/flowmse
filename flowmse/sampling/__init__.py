@@ -26,7 +26,7 @@ def from_flattened_numpy(x, shape):
 
 def get_white_box_solver(
     odesolver_name,  ode, VF_fn, Y, Y_prior=None,
-    T_rev=1.0, t_eps=0.03, N=30, stepsize_type="uniform", **kwargs
+    T_rev=1.0, t_eps=0.03, N=30,  **kwargs
 ):
    
     odesolver_cls = ODEsolverRegistry.get_by_name(odesolver_name)
@@ -42,18 +42,8 @@ def get_white_box_solver(
             
             xt, _ = ode.prior_sampling(Y_prior.shape, Y_prior)
             if odesolver_name=="euler":
-                if stepsize_type=="uniform":
-                    timesteps = torch.linspace(T_rev, T_rev/N, N, device=Y.device) 
-                elif stepsize_type=="gerkmann":
-                    timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device)
-                else:
-                    raise("stepsize 다시 설정, stepsize type는 uniform혹은 gerkmann")
-                # timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device) 
-            else:
-                if stepsize_type=="uniform":
-                    timesteps = torch.linspace(T_rev, T_rev/N, N, device=Y.device)
-                elif stepsize_type=="gerkmann":
-                    timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device)
+                timesteps = torch.linspace(T_rev, t_eps, N, device=Y.device)
+                
             xt = xt.to(Y_prior.device)
             for i in range(len(timesteps)):
                 t = timesteps[i]
@@ -61,10 +51,7 @@ def get_white_box_solver(
                     stepsize = t - timesteps[i+1]
                 else:
                     stepsize = timesteps[-1]
-                    if odesolver_name in ['midpoint', 'heun']:
-                        stepsize = timesteps[-1]
-                        if odesolver_name == "heun":
-                            stepsize = timesteps[-1]/2
+                    
                 vec_t = torch.ones(Y.shape[0], device=Y.device) * t
                 
                 xt = odesolver.update_fn(xt, vec_t, Y, stepsize)
@@ -125,92 +112,3 @@ def get_black_box_solver(
             return x, nfe
 
     return ode_solver
-
-# def timesteps_space(sdeT, sdeN,  eps, device, type='linear'):
-#     timesteps = torch.linspace(sdeT, eps, sdeN, device=device)
-#     if type == 'linear':
-#         return timesteps
-#     else:
-#         pass #not used, can be used to implement different sampling schedules
-    
-#     return timesteps
-
-
-
-# def get_ode_sampler(
-#     sde, score_fn, y, Y_prior=None, inverse_scaler=None, 
-#     denoise=True, rtol=1e-5, atol=1e-5, timestep_type = None,
-#     method='RK45', eps=3e-2, device='cuda', **kwargs
-# ):
-#     """Probability flow ODE sampler with the black-box ODE solver.
-
-#     Args:
-#         sde: An `sdes.SDE` object representing the forward SDE.
-#         score_fn: A function (typically learned model) that predicts the score.
-#         y: A `torch.Tensor`, representing the (non-white-)noisy starting point(s) to condition the prior on.
-#         inverse_scaler: The inverse data normalizer.
-#         denoise: If `True`, add one-step denoising to final samples.
-#         rtol: A `float` number. The relative tolerance level of the ODE solver.
-#         atol: A `float` number. The absolute tolerance level of the ODE solver.
-#         method: A `str`. The algorithm used for the black-box ODE solver.
-#             See the documentation of `scipy.integrate.solve_ivp`.
-#         eps: A `float` number. The reverse-time SDE/ODE will be integrated to `eps` for numerical stability.
-#         device: PyTorch device.
-
-#     Returns:
-#         A sampling function that returns samples and the number of function evaluations during sampling.
-#     """
-#     predictor = ReverseDiffusionPredictor(sde, score_fn, probability_flow=False)
-#     rsde = sde.reverse(score_fn, probability_flow=True)
-
-#     def denoise_update_fn(x):
-#         vec_eps = torch.ones(x.shape[0], device=x.device) * eps
-#         _, x = predictor.update_fn(x, vec_eps, y, 0.03)
-#         return x
-
-#     def drift_fn(x, t, y):
-#         """Get the drift function of the reverse-time SDE."""
-#         return rsde.sde(x, t, y)[0]
-
-#     def ode_sampler(z=None, Y_prior=Y_prior, **kwargs):
-#         """The probability flow ODE sampler with black-box ODE solver.
-
-#         Args:
-#             model: A score model.
-#             z: If present, generate samples from latent code `z`.
-#         Returns:
-#             samples, number of function evaluations.
-#         """
-#         with torch.no_grad():
-#             # If not represent, sample the latent code from the prior distibution of the SDE.
-
-
-#             if Y_prior == None:
-#                 Y_prior = y
-            
-#             xt, _ = sde.prior_sampling(Y_prior.shape, Y_prior)
-#             x = xt.to(Y_prior.device)
-
-#             def ode_func(t, x):
-#                 x = from_flattened_numpy(x, y.shape).to(device).type(torch.complex64)
-#                 vec_t = torch.ones(y.shape[0], device=x.device) * t
-#                 drift = drift_fn(x, vec_t, y)
-#                 return to_flattened_numpy(drift)
-
-#             # Black-box ODE solver for the probability flow ODE
-#             solution = integrate.solve_ivp(
-#                 ode_func, (sde.T, eps), to_flattened_numpy(x),
-#                 rtol=rtol, atol=atol, method=method, **kwargs
-#             )
-#             nfe = solution.nfev
-#             x = torch.tensor(solution.y[:, -1]).reshape(y.shape).to(device).type(torch.complex64)
-
-#             # Denoising is equivalent to running one predictor step without adding noise
-#             if denoise:
-#                 x = denoise_update_fn(x)
-
-#             if inverse_scaler is not None:
-#                 x = inverse_scaler(x)
-#             return x, nfe
-
-#     return ode_sampler
