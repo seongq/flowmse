@@ -4,7 +4,6 @@ This repository builds upon a previous work, that can be found here https://gith
 
 Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/
 
-test asdfsdf
 
 <!-- 
 * 2024.06.16 학습해둔 모델을 finetuning하는 방법 개발했습니다. mid_stop과 mid_x_mean이 있습니다. train_resume.py
