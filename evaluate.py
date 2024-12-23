@@ -111,7 +111,7 @@ if __name__ == '__main__':
         elif "WSJ0-CHiME3_low_snr" in checkpoint_file:
             tr_dataset ="WSJ0-CHiME3_low_snr"
         else:
-            raise("확인")
+            tr_dataset = "WSJ0-CHiME3"
     elif "VCTK_corpus" in checkpoint_file:
         tr_dataset = "VCTK_corpus"
     else:
@@ -122,18 +122,18 @@ if __name__ == '__main__':
     if "STOCHASTICINTERPOLANT" in checkpoint_file:
         odename = "STOCHASTICINTERPOLANT"
          
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_N_mid{N_mid}_N_{N}"
+        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_N_mid_{N_mid}_N_{N}"
     elif "FLOWMATCHING" in checkpoint_file:
         odename = "FLOWMATCHING"
         sigma_min = model.ode.sigma_min
         sigma_max =model.ode.sigma_max
          
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_sigma_min_{sigma_min}_sigma_max_{sigma_max}_epoch_{epoch}_N_mid{N_mid}_N_{N}"
+        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_sigma_min_{sigma_min}_sigma_max_{sigma_max}_epoch_{epoch}_N_mid_{N_mid}_N_{N}"
     elif "SCHRODINGERBRIDGE" in checkpoint_file:
         odename = "SCHRODINGERBRIDGE"
         sigma = model.ode.sigma
         
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_sigma_{sigma}_N_mid{N_mid}_N_{N}"
+        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_sigma_{sigma}_N_mid_{N_mid}_N_{N}"
     else:
         raise("odename 다시 확인해볼것")
     # print(tr_dataset)
@@ -161,22 +161,32 @@ if __name__ == '__main__':
         Y = torch.unsqueeze(model._forward_transform(model._stft(y.cuda())), 0)
         Y = pad_spec(Y)
         
+        if N_mid ==0:
+            if odesolver_type == "white":
+                sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda(), Y_prior=Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
         
-        if odesolver_type == "white":
-            sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N_mid)
+            else:
+                print("{} is not a valid sampler type!".format(odesolver_type))
+            
+        elif N_mid > 0:
+            if odesolver_type == "white":
+                sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda(), Y_prior = Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N_mid)
        
-        else:
-            print("{} is not a valid sampler type!".format(odesolver_type))
-        CONDITION, nfe = sampler()
+            else:
+                print("{} is not a valid sampler type!".format(odesolver_type))
+            CONDITION, nfe = sampler()
         
-        if odesolver_type == "white":
-            sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda()*0.2 + CONDITION.cuda() * 0.2, Y_prior=Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
+            if odesolver_type == "white":
+                sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda()*0.2 + CONDITION.cuda() * 0.8, Y_prior=Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
        
+            else:
+                print("{} is not a valid sampler type!".format(odesolver_type))
+        
         else:
-            print("{} is not a valid sampler type!".format(odesolver_type))
-        sample, nfe = sampler()
+            raise(f"N_mid 값 확인")
+       
         
-        
+        sample, _ = sampler()
         sample = sample.squeeze()
 
         
