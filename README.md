@@ -13,6 +13,7 @@ In the above equation, although the condition that $\phi_0(x_0)$ follows $p$ is 
 
 $$\frac{d\phi_t(x_1)}{dt} = v_t(t,\phi_t(x_1)), \phi_1(x_1)=x_1, x_1 \sim p(\cdot)$$  
 
+It means that it does not matter that the simpled distribution is located at which time point.
 Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/
 
 
