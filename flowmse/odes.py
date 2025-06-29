@@ -68,7 +68,7 @@ class FLOWMATCHING(ODE):
         parser.add_argument("--sigma_max",type=float, default=0.5 , help="The maximum sigma to use. 1 by default") 
         return parser
 
-    def __init__(self, sigma_min=0.00, sigma_max =0.5, **ignored_kwargs):
+    def __init__(self, sigma_min=0.00, sigma_max =0.487, **ignored_kwargs):
         
         super().__init__()        
         self.sigma_min = sigma_min

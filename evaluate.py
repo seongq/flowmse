@@ -49,15 +49,6 @@ if __name__ == '__main__':
 
     checkpoint_file = args.ckpt
     
-    #please change this directory 
-        #please change this directory 
-    
-    
-    
-    #"/export/home/lay/PycharmProjects/ncsnpp/enhanced/{}/".format(args.destination_folder)
-
-    
-
     # Settings
     sr = 16000
     odesolver_type = args.odesolver_type
@@ -69,14 +60,13 @@ if __name__ == '__main__':
 
 
 
-    # Load score model
+    # Load vector field model
     model = VFModel.load_from_checkpoint(
         checkpoint_file, base_dir="",
         batch_size=8, num_workers=4, kwargs=dict(gpu=False)
     )
     
     reverse_starting_point = args.reverse_starting_point
-        
     reverse_end_point = args.last_eval_point
         
     model.eval(no_ema=False)
@@ -229,7 +219,7 @@ if __name__ == '__main__':
         
         
         file.write("Reverse starting point: {}\n".format(reverse_starting_point))
-        file.write("Reverse end point: {}\n".format(reverse_end_point))
+        file.write("Last evaluated point: {}\n".format(reverse_end_point))
         
         file.write("data: {}\n".format(args.test_dir))
         file.write("ode: {}\n".format(odename))
