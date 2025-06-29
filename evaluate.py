@@ -30,10 +30,9 @@ if __name__ == '__main__':
     parser.add_argument("--test_dir", type=str, required=True, help='Directory containing the test data')
     parser.add_argument("--odesolver_type", type=str, choices=("white"), default="white",
                         help="Specify the sampler type, we used white")
-    parser.add_argument("--odesolver", type=str, choices=('euler')
-                        default="euler", help="Numerical integrator")
-    parser.add_argument("--reverse_starting_point", type=float, default=None, help="Starting point for the ODE.")
-    parser.add_argument("--last_eval_point", type=float, default=None)
+    parser.add_argument("--odesolver", type=str, choices=('euler'),default="euler", help="Numerical integrator")
+    parser.add_argument("--reverse_starting_point", type=float, default=1.0, help="Starting point for the ODE.")
+    parser.add_argument("--last_eval_point", type=float, default=0.03)
     
     
     
@@ -76,21 +75,10 @@ if __name__ == '__main__':
         batch_size=8, num_workers=4, kwargs=dict(gpu=False)
     )
     
-    if args.reverse_starting_point == None:
-        reverse_starting_point = model.T_rev
-    else:
-        reverse_starting_point = args.reverse_starting_point
+    reverse_starting_point = args.reverse_starting_point
         
-    model.ode.T_rev = reverse_starting_point
+    reverse_end_point = args.last_eval_point
         
-    if args.reverse_end_point == None:
-        reverse_end_point = model.t_eps
-    else:
-        reverse_end_point = args.reverse_end_point
-        
-        
-    # print(reverse_starting_point)
-    # print(reverse_end_point)
     model.eval(no_ema=False)
     model.cuda()
     import re

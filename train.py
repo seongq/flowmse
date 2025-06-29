@@ -17,17 +17,17 @@ from flowmse.model import VFModel
 from datetime import datetime
 import pytz
 
-# 한국 표준시 (KST) 설정
-kst = pytz.timezone('Asia/Seoul')
-
-# 현재 한국 시간 가져오기
-now_kst = datetime.now(kst)
-
-# YYYYMMDDHHMMSS 형태로 포맷팅
-formatted_time_kst = now_kst.strftime("%Y%m%d%H%M%S")
+kst = pytz.timezone('Asia/Seoul') # 한국 표준시 (KST) 설정
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+now_kst = datetime.now(kst) # 현재 한국 시간 가져오기
+
+
+formatted_time_kst = now_kst.strftime("%Y%m%d%H%M%S") # YYYYMMDDHHMMSS 형태로 포맷팅
+
+
+
+# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 def get_argparse_groups(parser):
      groups = {}
      for group in parser._action_groups:
