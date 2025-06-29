@@ -27,7 +27,6 @@ formatted_time_kst = now_kst.strftime("%Y%m%d%H%M%S") # YYYYMMDDHHMMSS 형태로
 
 
 
-# os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 def get_argparse_groups(parser):
      groups = {}
      for group in parser._action_groups:
@@ -42,7 +41,7 @@ if __name__ == '__main__':
      parser = ArgumentParser()
      for parser_ in (base_parser, parser):
           parser_.add_argument("--backbone", type=str, choices=BackboneRegistry.get_all_names(), default="ncsnpp")
-          parser_.add_argument("--ode", type=str, choices=ODERegistry.get_all_names(), default="otflow")    
+          parser_.add_argument("--ode", type=str, choices=ODERegistry.get_all_names(), default="flowmatching")    
           parser_.add_argument("--no_wandb", action='store_true', help="Turn off logging to W&B, using local default logger instead")
           
           
