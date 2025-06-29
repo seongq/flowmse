@@ -18,8 +18,6 @@ import os
 from flowmse.util.other import pad_spec
 from flowmse.sampling import get_white_box_solver, get_black_box_solver
 
-# GPU 2번과 3번만 사용하도록 설정
-os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 
 
 from utils import energy_ratios, ensure_dir, print_mean_std
@@ -30,19 +28,19 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     
     parser.add_argument("--test_dir", type=str, required=True, help='Directory containing the test data')
-    parser.add_argument("--odesolver_type", type=str, choices=("white", "black"), default="white",
-                        help="Specify the sampler type")
-    parser.add_argument("--odesolver", type=str,
-                        default="euler", help="Predictor class for the PC sampler.")
-    parser.add_argument("--reverse_starting_point", type=float, default=None, help="Starting point for the reverse SDE.")
-    parser.add_argument("--reverse_end_point", type=float, default=None)
+    parser.add_argument("--odesolver_type", type=str, choices=("white"), default="white",
+                        help="Specify the sampler type, we used white")
+    parser.add_argument("--odesolver", type=str, choices=('euler')
+                        default="euler", help="Numerical integrator")
+    parser.add_argument("--reverse_starting_point", type=float, default=None, help="Starting point for the ODE.")
+    parser.add_argument("--last_eval_point", type=float, default=None)
     
     
     
     parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
-    parser.add_argument("--N", type=int, default=5, help="Number of reverse steps")
+    parser.add_argument("--N", type=int, default=5, help="Number of time steps")
     
-    parser.add_argument("--N_mid", type=int, default=1)
+    parser.add_argument("--N_mid", type=int, default=0, help="It is not related to FlowSE")
     
 
     args = parser.parse_args()
