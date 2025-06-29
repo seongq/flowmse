@@ -112,7 +112,7 @@ if __name__ == '__main__':
      # Initialize the Trainer and the DataModule
      trainer = pl.Trainer.from_argparse_args(
           arg_groups['pl.Trainer'],
-          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[3], auto_select_gpus=False, 
+          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0], auto_select_gpus=False, 
           logger=logger, log_every_n_steps=10, num_sanity_val_steps=0, max_epochs=300,
           callbacks=callbacks
      )
