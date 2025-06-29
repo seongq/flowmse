@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument("--last_eval_point", type=float, default=0.03)
     
     
-    
+    parser.add_argument('--folder_destination', type=str, required=True, help="Destination path of inference results. Absolute path is required.")
     parser.add_argument("--ckpt", type=str, help='Path to model checkpoint.')
     parser.add_argument("--N", type=int, default=5, help="Number of time steps")
     
@@ -80,41 +80,17 @@ if __name__ == '__main__':
         print("Epoch not found in the path.")
         
     noisy_files = sorted(glob.glob('{}/*.wav'.format(noisy_dir)))
-    if "WSJ0-CHiME3" in checkpoint_file:
-        tr_dataset = "WSJ0-CHiME3"
-        if "WSJ0-CHiME3_derev" in checkpoint_file:
-            tr_dataset = "WSJ0-CHiME3_derev"
-        elif "WSJ0-CHiME3_low_snr" in checkpoint_file:
-            tr_dataset ="WSJ0-CHiME3_low_snr"
-        else:
-            tr_dataset = "WSJ0-CHiME3"
-    elif "VCTK_corpus" in checkpoint_file:
-        tr_dataset = "VCTK_corpus"
-    else:
-        raise("확인")
-    
-    tst_dataset = os.path.basename(os.path.normpath(args.test_dir))
-    
-    if "STOCHASTICINTERPOLANT" in checkpoint_file:
-        odename = "STOCHASTICINTERPOLANT"
-         
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_N_mid_{N_mid}_N_{N}"
-    elif "FLOWMATCHING" in checkpoint_file:
-        odename = "FLOWMATCHING"
-        sigma_min = model.ode.sigma_min
-        sigma_max =model.ode.sigma_max
-         
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_sigma_min_{sigma_min}_sigma_max_{sigma_max}_epoch_{epoch}_N_mid_{N_mid}_N_{N}"
-    elif "SCHRODINGERBRIDGE" in checkpoint_file:
-        odename = "SCHRODINGERBRIDGE"
-        sigma = model.ode.sigma
+
+    odename = "FLOWMATCHING"
+    sigma_min = model.ode.sigma_min
+    sigma_max =model.ode.sigma_max
         
-        folder_destination = f"{odename}_tr_{tr_dataset}_test_{tst_dataset}_epoch_{epoch}_sigma_{sigma}_N_mid_{N_mid}_N_{N}"
-    else:
-        raise("odename 다시 확인해볼것")
+       
     # print(tr_dataset)
     # print(tst_dataset)
-    target_dir = f"/data/BASE_ODES/{folder_destination}/"
+    
+    folder_destination = args.folder_destination
+    target_dir = f"{folder_destination}/"
     
     ensure_dir(target_dir + "files/")
     data = {"filename": [], "pesq": [], "estoi": [], "si_sdr": [], "si_sir": [], "si_sar": []}
@@ -144,22 +120,9 @@ if __name__ == '__main__':
             else:
                 print("{} is not a valid sampler type!".format(odesolver_type))
             
-        elif N_mid > 0:
-            if odesolver_type == "white":
-                sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda(), Y_prior = Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N_mid)
        
-            else:
-                print("{} is not a valid sampler type!".format(odesolver_type))
-            CONDITION, nfe = sampler()
-        
-            if odesolver_type == "white":
-                sampler = get_white_box_solver(odesolver, model.ode, model, Y=Y.cuda()*0.2 + CONDITION.cuda() * 0.8, Y_prior=Y.cuda(), T_rev=reverse_starting_point, t_eps=reverse_end_point,N=N)
-       
-            else:
-                print("{} is not a valid sampler type!".format(odesolver_type))
-        
         else:
-            raise(f"N_mid 값 확인")
+            raise(f"N_mid should be 0.")
        
         
         sample, _ = sampler()
@@ -223,19 +186,9 @@ if __name__ == '__main__':
         
         file.write("data: {}\n".format(args.test_dir))
         file.write("ode: {}\n".format(odename))
-        file.write(f"train_data: {tr_dataset}"+"\n")
-        file.write(f"test_data: {tst_dataset}"+"\n")
-        if odename=="STOCHASTICINTERPOLANT":
-            file.write(f"sigma_min: {0}"+"\n")
-            file.write(f"sigma_max: {0}"+"\n")
-        elif odename=="FLOWMATCHING":
-            file.write(f"sigma_min: {sigma_min}"+"\n")
-            file.write(f"sigma_max: {sigma_max}"+"\n")
-        elif odename=="SCHRODINGERBRIDGE":
-            file.write(f"sigma_min: {sigma}"+"\n")
-            file.write(f"sigma_max: {sigma}"+"\n")
-        else:
-            raise("odname확인")
-        
+    
+        file.write(f"sigma_min: {sigma_min}"+"\n")
+        file.write(f"sigma_max: {sigma_max}"+"\n")
+    
+    
         file.write("N: {}\n".format(N))
-        file.write("N_mid: {}\n".format(N_mid))
