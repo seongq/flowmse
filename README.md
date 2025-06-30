@@ -41,7 +41,7 @@ This repository builds upon previous great works:
 ## Training
 Training is done by executing train.py. A minimal running example with default settings (as in our paper [1]) can be run with
 
-```python
+```bash
 python train.py --base_dir <your_dataset_dir>
 ```
 where `your_dataset_dir` should be a containing subdirectories `train/` and `valid/` (optionally `test/` as well). 
