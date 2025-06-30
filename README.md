@@ -9,6 +9,10 @@ This repository builds upon previous great works:
 * [SGMSE-CRP] https://github.com/sp-uhh/sgmse_crp
 * [BBED]  https://github.com/sp-uhh/sgmse-bbed
 
+## Installation
+* Create a new virtual environment with Python 3.10 (we have not tested other Python versions, but they may work).
+* Install the package dependencies via ```pip install -r requirements.txt```.
+
 
 ## Evaluation
 * To evaluate on a test set, run
