@@ -20,21 +20,16 @@ This repository builds upon previous great works:
 [1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. 
 [*FlowSE: Flow Matching-based Speech Enhancement*](https://ieeexplore.ieee.org/document/10888274), ICASSP, 2025.
 
-```
+``` bib
 @INPROCEEDINGS{10888274,
   author={Lee, Seonggyu and Cheong, Sein and Han, Sangwook and Shin, Jong Won},
   booktitle={ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 
   title={FlowSE: Flow Matching-based Speech Enhancement}, 
   year={2025},
-  volume={},
-  number={},
-  pages={1-5},
-  keywords={Perturbation methods;Computational modeling;Diffusion processes;Speech enhancement;Signal processing;Diffusion models;Vectors;Noise measurement;Kernel;Tuning;speech enhancement;generative model;flow matching;diffusion model},
   doi={10.1109/ICASSP49660.2025.10888274}}
 
 ```
 
-이거 왜 안되
 
 <!-- Continuous Normalizing Flow (CNF) is a method transforming a simple distribution $p(x)$ to a complex distribution $q(x)$.  
 
