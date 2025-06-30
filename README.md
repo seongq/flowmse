@@ -1,4 +1,10 @@
 # Flow matching based speech enhancement
+This repository contains the official PyTorch implementations for the 2025 paper:
+
+* FlowSE: Flow Matching-based Speech Enhancement [1]
+
+## Citations / References
+[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. FlowSE: Flow Matching-based Speech Enhancement, ICASSP, 2025.
 
 This repository builds upon a previous work, that can be found here https://github.com/sp-uhh/sgmse  
 
