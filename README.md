@@ -3,12 +3,11 @@ This repository contains the official PyTorch implementations for the 2025 paper
 
 * FlowSE: Flow Matching-based Speech Enhancement [1]
 
-## Citations / References
-[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. FlowSE: Flow Matching-based Speech Enhancement, ICASSP, 2025.
+
 
 This repository builds upon a previous work, that can be found here https://github.com/sp-uhh/sgmse  
 
-Continuous Normalizing Flow (CNF) is a method transforming a simple distribution $p(x)$ to a complex distribution $q(x)$.  
+<!-- Continuous Normalizing Flow (CNF) is a method transforming a simple distribution $p(x)$ to a complex distribution $q(x)$.  
 
 CNF is described by Oridinary Differential Equations (ODEs):  
 
@@ -20,7 +19,10 @@ In the above equation, although the condition that $\phi_0(x_0)$ follows $p$ is 
 $$\frac{d\phi_t(x_1)}{dt} = v_t(t,\phi_t(x_1)), \phi_1(x_1)=x_1, x_1 \sim p(\cdot)$$  
 
 It means that it does not matter that the simpled distribution is located at which time point.
-Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/
+Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/ -->
 
+
+## Citations / References
+[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. FlowSE: Flow Matching-based Speech Enhancement, ICASSP, 2025.
 
 
