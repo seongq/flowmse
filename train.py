@@ -18,11 +18,7 @@ from datetime import datetime
 import pytz
 
 kst = pytz.timezone('Asia/Seoul') # 한국 표준시 (KST) 설정
-
-
 now_kst = datetime.now(kst) # 현재 한국 시간 가져오기
-
-
 formatted_time_kst = now_kst.strftime("%Y%m%d%H%M%S") # YYYYMMDDHHMMSS 형태로 포맷팅
 
 
@@ -76,42 +72,37 @@ if __name__ == '__main__':
           }
      )
      # Set up logger configuration
-     if args.no_wandb:
-          logger = TensorBoardLogger(save_dir="logs", name="tensorboard")
-     else:
-          if ode_class.__name__ == "FLOWMATCHING":
-               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_sigma_min_{args.sigma_min}_sigma_max_{args.sigma_max}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
-          elif ode_class.__name__ == "STOCHASTICINTERPOLANT":
-               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
-          elif ode_class.__name__ == "SCHRODINGERBRIDGE":
-               name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}_{ode_class.__name__}_sigma_{args.sigma}_T_rev_{args.T_rev}_t_eps_{args.t_eps}"
-               logger = WandbLogger(project=f"{ode_class.__name__}", log_model=True, save_dir="logs", name=name_save_dir_path)
-          
-          
-          else:
-               raise ValueError(f"{ode_class.__name__}에 대한 configuration이 만들어지지 않았음")
-          logger.experiment.log_code(".")
+     
+
+     name_save_dir_path = f"dataset_{dataset}_{formatted_time_kst}"
+     logger = WandbLogger(project=f"FLOWSE", log_model=True, save_dir="logs", name=name_save_dir_path)
+
+     logger.experiment.log_code(".")
 
      # Set up callbacks for logger
 
      model_dirpath = f"logs/{name_save_dir_path}_{logger.version}"
-     callbacks = [ModelCheckpoint(dirpath=model_dirpath, save_last=True, filename='{epoch}-last')]
+     callbacks = [ModelCheckpoint(dirpath=model_dirpath, save_last=True, filename='{epoch}_last')]
 
      checkpoint_callback_last = ModelCheckpoint(dirpath=model_dirpath,
           save_last=True, filename='{epoch}-last')
      checkpoint_callback_pesq = ModelCheckpoint(dirpath=model_dirpath, 
-          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}-{pesq:.2f}')
+          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}_{pesq:.2f}')
      checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=model_dirpath, 
-          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}-{si_sdr:.2f}')
+          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}_{si_sdr:.2f}')
      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
      trainer = pl.Trainer.from_argparse_args(
           arg_groups['pl.Trainer'],
-          accelerator='gpu', strategy=DDPPlugin(find_unused_parameters=False), gpus=[0], auto_select_gpus=False, 
-          logger=logger, log_every_n_steps=10, num_sanity_val_steps=1, max_epochs=300,
+          accelerator='gpu', 
+          strategy=DDPPlugin(find_unused_parameters=False), 
+          gpus=[0], 
+          auto_select_gpus=False, 
+          logger=logger, 
+          log_every_n_steps=10,
+          num_sanity_val_steps=1,
+          max_epochs=300,
           callbacks=callbacks
      )
 
