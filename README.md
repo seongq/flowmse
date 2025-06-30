@@ -13,9 +13,10 @@ This repository contains the official PyTorch implementations for the 2025 paper
 <p align="center">  
     <img src="https://img.youtube.com/vi/sjYstc5ss-g/0.jpg" width="600" alt="YouTube English Video"/>
   <a href="https://youtu.be/sjYstc5ss-g?si=h7CSjjvYb3BwdT2f" target="_blank">
-  <p align="center">Youtube video [english] </p>
-  <p align="center">Youtube video [korean] </p>
+  <p align="center">
+  <a href="">Presentation video [english]</a>, <a href=""> Presentation video [korean] </a>
   </a>
+  </p>
 </p>
 Speech examples are available on our [DEMOpage](https://seongqjini.com/speech-enhancement-with-flow-matching-method/).
 
