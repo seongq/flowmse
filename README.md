@@ -4,8 +4,24 @@ This repository contains the official PyTorch implementations for the 2025 paper
 * FlowSE: Flow Matching-based Speech Enhancement [1]
 
 
+This repository builds upon previous great works:
+* [SGMSE] https://github.com/sp-uhh/sgmse  
+* [SGMSE-CRP] https://github.com/sp-uhh/sgmse_crp
+* [BBED]  https://github.com/sp-uhh/sgmse-bbed
 
-This repository builds upon a previous work, that can be found here https://github.com/sp-uhh/sgmse  
+
+## Evaluation
+* To evaluate on a test set, run
+  ```bash
+  python enhancement.py --test_dir <your_test_dir> --enhanced_dir <your_enhanced_dir> --ckpt <path_to_model_checkpoint>
+  ```
+
+## Citations / References
+[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. 
+[*FlowSE: Flow Matching-based Speech Enhancement*](https://ieeexplore.ieee.org/document/10888274), ICASSP, 2025.
+
+
+
 
 <!-- Continuous Normalizing Flow (CNF) is a method transforming a simple distribution $p(x)$ to a complex distribution $q(x)$.  
 
@@ -20,10 +36,5 @@ $$\frac{d\phi_t(x_1)}{dt} = v_t(t,\phi_t(x_1)), \phi_1(x_1)=x_1, x_1 \sim p(\cdo
 
 It means that it does not matter that the simpled distribution is located at which time point.
 Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/ -->
-
-
-## Citations / References
-[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. 
-[*FlowSE: Flow Matching-based Speech Enhancement*](https://ieeexplore.ieee.org/document/10888274), ICASSP, 2025.
 
 
