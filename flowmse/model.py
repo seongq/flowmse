@@ -21,8 +21,8 @@ class VFModel(pl.LightningModule):
     def add_argparse_args(parser):
         parser.add_argument("--lr", type=float, default=1e-4, help="The learning rate (1e-4 by default)")
         parser.add_argument("--ema_decay", type=float, default=0.999, help="The parameter EMA decay constant (0.999 by default)")
-        parser.add_argument("--t_eps", type=float, default=0.03, help="The minimum time (0 by default)")
-        parser.add_argument("--T_rev",type=float, default=1.0, help="The maximum time")
+        parser.add_argument("--t_eps", type=float, default=0.03, help="t_delta in the paper")
+        parser.add_argument("--T_rev",type=float, default=1.0, help="Starting point t_N in the paper")
         
         parser.add_argument("--num_eval_files", type=int, default=10, help="Number of files for speech enhancement performance evaluation during training. Pass 0 to turn off (no checkpoints based on evaluation metrics will be generated).")
         parser.add_argument("--loss_type", type=str, default="mse", help="The type of loss function to use.")
@@ -37,8 +37,8 @@ class VFModel(pl.LightningModule):
         Create a new ScoreModel.
 
         Args:
-            backbone: Backbone DNN that serves as a score-based model.
-            sde: The SDE that defines the diffusion process.
+            backbone: Backbone DNN that serves as a vector field model.
+            ode: The ode used.
             lr: The learning rate of the optimizer. (1e-4 by default).
             ema_decay: The decay constant of the parameter EMA (0.999 by default).
             t_eps: The minimum time to practically run for to avoid issues very close to zero (1e-5 by default).

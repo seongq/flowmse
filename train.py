@@ -102,7 +102,7 @@ if __name__ == '__main__':
           logger=logger, 
           log_every_n_steps=10,
           num_sanity_val_steps=1,
-          max_epochs=300,
+          max_epochs=1000,
           callbacks=callbacks
      )
 
