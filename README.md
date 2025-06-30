@@ -13,7 +13,7 @@ This repository builds upon previous great works:
 ## Evaluation
 * To evaluate on a test set, run
   ```bash
-  python enhancement.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint>
+  python enhancement.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint> --N <num_of_time_steps>
   ```
 
 ## Citations / References
