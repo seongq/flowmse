@@ -85,11 +85,11 @@ if __name__ == '__main__':
      callbacks = [ModelCheckpoint(dirpath=model_dirpath, save_last=True, filename='{epoch}_last')]
 
      checkpoint_callback_last = ModelCheckpoint(dirpath=model_dirpath,
-          save_last=True, filename='{epoch}-last')
+          save_last=True, filename='{epoch}_last')
      checkpoint_callback_pesq = ModelCheckpoint(dirpath=model_dirpath, 
-          save_top_k=2, monitor="pesq", mode="max", filename='{epoch}_{pesq:.2f}')
+          save_top_k=20, monitor="pesq", mode="max", filename='{epoch}_{pesq:.2f}')
      checkpoint_callback_si_sdr = ModelCheckpoint(dirpath=model_dirpath, 
-          save_top_k=2, monitor="si_sdr", mode="max", filename='{epoch}_{si_sdr:.2f}')
+          save_top_k=20, monitor="si_sdr", mode="max", filename='{epoch}_{si_sdr:.2f}')
      callbacks = [checkpoint_callback_last, checkpoint_callback_pesq, checkpoint_callback_si_sdr]
 
      # Initialize the Trainer and the DataModule
@@ -97,7 +97,7 @@ if __name__ == '__main__':
           arg_groups['pl.Trainer'],
           accelerator='gpu', 
           strategy=DDPPlugin(find_unused_parameters=False), 
-          gpus=[0], 
+          gpus=[0,1], 
           auto_select_gpus=False, 
           logger=logger, 
           log_every_n_steps=10,
