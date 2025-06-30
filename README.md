@@ -24,6 +24,11 @@ python train.py --base_dir <your_dataset_dir>
 where `your_dataset_dir` should be a containing subdirectories `train/` and `valid/` (optionally `test/` as well). 
 
 Each subdirectory must itself have two subdirectories `clean/` and `noisy/`, with the same filenames present in both. We currently only support training with `.wav` files.
+
+To get the training set WSJ0-CHIME3, we refer to https://github.com/sp-uhh/sgmse and execute create_wsj0_chime3.py.
+
+To see all available training options, run python train.py --help. 
+
 ## Evaluation
   To evaluate on a test set, run
 
@@ -32,7 +37,7 @@ Each subdirectory must itself have two subdirectories `clean/` and `noisy/`, wit
   python enhancement.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint> --N <num_of_time_steps>
   ```
 
-`your_test_dataset_dir` should contain a subfolder `test` which contains subdirectories `clean` and `noisy`.
+`your_test_dataset_dir` should contain a subfolder `test` which contains subdirectories `clean` and `noisy`. `clean` and `noisy` should contain .wav files.
 ## Citations / References
 [1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. 
 [*FlowSE: Flow Matching-based Speech Enhancement*](https://ieeexplore.ieee.org/document/10888274), ICASSP, 2025.
