@@ -22,7 +22,7 @@ This repository builds upon previous great works:
 
 ``` bib
 @INPROCEEDINGS{10888274,
-  author={Lee, Seonggyu and Cheong, Sein and Han, Sangwook and Shin, Jong Won},
+  author={Seonggyu Lee and Sein Cheong and Sangwook Han and Jong Won Shin},
   booktitle={ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 
   title={FlowSE: Flow Matching-based Speech Enhancement}, 
   year={2025},
