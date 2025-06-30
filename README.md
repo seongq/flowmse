@@ -23,6 +23,6 @@ Demo page: https://seongqjini.com/speech-enhancement-with-flow-matching-method/ 
 
 
 ## Citations / References
-[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. FlowSE: Flow Matching-based Speech Enhancement, ICASSP, 2025.
+[1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. *FlowSE: Flow Matching-based Speech Enhancement*, ICASSP, 2025.
 
 
