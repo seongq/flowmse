@@ -12,14 +12,27 @@ This repository builds upon previous great works:
 ## Installation
 * Create a new virtual environment with Python 3.10 (we have not tested other Python versions, but they may work).
 * Install the package dependencies via ```pip install -r requirements.txt```.
+* [**W&B**](https://wandb.ai/) is required.
 
 
+## Training
+Training is done by executing train.py. A minimal running example with default settings (as in our paper [1]) can be run with
+
+```python
+python train.py --base_dir <your_dataset_dir>
+```
+where `your_dataset_dir` should be a containing subdirectories `train/` and `valid/` (optionally `test/` as well). 
+
+Each subdirectory must itself have two subdirectories `clean/` and `noisy/`, with the same filenames present in both. We currently only support training with `.wav` files.
 ## Evaluation
-* To evaluate on a test set, run
+  To evaluate on a test set, run
+
+
   ```bash
   python enhancement.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint> --N <num_of_time_steps>
   ```
 
+`your_test_dataset_dir` should contain a subfolder `test` which contains subdirectories `clean` and `noisy`.
 ## Citations / References
 [1] Seonggyu Lee, Sein Cheong, Sangwook Han, Jong Won Shin. 
 [*FlowSE: Flow Matching-based Speech Enhancement*](https://ieeexplore.ieee.org/document/10888274), ICASSP, 2025.
