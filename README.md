@@ -11,10 +11,11 @@ This repository contains the official PyTorch implementations for the 2025 paper
   
 </p>
 <p align="center">  
+   <a href="https://youtu.be/sjYstc5ss-g?si=h7CSjjvYb3BwdT2f" target="_blank">
     <img src="https://img.youtube.com/vi/sjYstc5ss-g/0.jpg" width="600" alt="YouTube English Video"/>
-  <a href="https://youtu.be/sjYstc5ss-g?si=h7CSjjvYb3BwdT2f" target="_blank">
+  </a>
   <p align="center">
-  <a href="">Presentation video [english]</a>, <a href=""> Presentation video [korean] </a>
+  <a href="https://youtu.be/sjYstc5ss-g?si=3yEjGvfJ4RdgKfuh">Presentation video [english]</a>, <a href="https://youtu.be/PI4qyd4YDJk?si=xhrrJ-MoRSewkQ36"> Presentation video [korean] </a>
   </a>
   </p>
 </p>
