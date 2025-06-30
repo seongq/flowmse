@@ -3,8 +3,11 @@ This repository contains the official PyTorch implementations for the 2025 paper
 
 
 
-<img src="https://seongqjini.com/wp-content/uploads/2025/02/Flowse_ani.gif" alt="FlowSE fig1" width="500"/>
-
+<p align="center">
+  <a href="https://ieeexplore.ieee.org/document/10888274" target="_blank">
+    <img src="https://seongqjini.com/wp-content/uploads/2025/02/Flowse_ani.gif" alt="FlowSE fig1" width="600"/>
+  </a>
+</p>
 
 * FlowSE: Flow Matching-based Speech Enhancement [1]
 
