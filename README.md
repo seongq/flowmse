@@ -57,7 +57,7 @@ To see all available training options, run python train.py --help.
 
 
   ```bash
-  python enhancement.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint> --N <num_of_time_steps>
+  python evaluate.py --test_dir <your_test_dataset_dir> --folder_destination <your_enh_result_save_dir> --ckpt <path_to_model_checkpoint> --N <num_of_time_steps>
   ```
 
 `your_test_dataset_dir` should contain a subfolder `test` which contains subdirectories `clean` and `noisy`. `clean` and `noisy` should contain .wav files.
