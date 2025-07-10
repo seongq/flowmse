@@ -32,6 +32,11 @@ This repository builds upon previous great works:
 * [SGMSE-CRP] https://github.com/sp-uhh/sgmse_crp
 * [BBED]  https://github.com/sp-uhh/sgmse-bbed
 
+## Follow-up work
+Please also check out our follow-up work with code available:
+
+* Seonggyu Lee, Sein Cheong, Sangwook Han, Kihyuk Kim and Jong Won Shin, “Speech Enhancement based on cascaded two flows” in Proceedings of Interspeech, Aug. 2025 (accepted). [[github]](https://github.com/seongq/cascadingtwoflowmatching)
+
 ## Installation
 * Create a new virtual environment with Python 3.10 (we have not tested other Python versions, but they may work).
 * Install the package dependencies via ```pip install -r requirements.txt```.
