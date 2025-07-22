@@ -1,4 +1,4 @@
-# Flow matching based speech enhancement
+# FlowSE: Flow matching based speech enhancement
 This repository contains the official PyTorch implementations for the 2025 paper:
 * FlowSE: Flow Matching-based Speech Enhancement [1]
 
