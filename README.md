@@ -57,6 +57,10 @@ To get the training set WSJ0-CHIME3, we refer to https://github.com/sp-uhh/sgmse
 
 To see all available training options, run python train.py --help. 
 
+## Checkpoints
+voicebank-demand: Download [checkpoint of VB-DMD](https://drive.google.com/file/d/1PgzFSAu2t3BX8znNuPKNZdvaOSEXeo88/view?usp=drive_link)
+
+
 ## Evaluation
   To evaluate on a test set, run
 

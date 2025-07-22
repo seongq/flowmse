@@ -97,7 +97,7 @@ if __name__ == '__main__':
           arg_groups['pl.Trainer'],
           accelerator='gpu', 
           strategy=DDPPlugin(find_unused_parameters=False), 
-          gpus=[0,1], 
+          gpus=[1], 
           auto_select_gpus=False, 
           logger=logger, 
           log_every_n_steps=10,
