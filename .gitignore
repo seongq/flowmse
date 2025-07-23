@@ -20,5 +20,6 @@ train_resume.py
 train_.sh
 fowse*
 flowse*
-WSJ0/
-WSJ0
+WSJ0*/
+WSJ0*
+*.wav
